@@ -90,17 +90,9 @@ Simulates the VAT Assist feedback service. The response is determined by the
 | any other value | 400 | `TEST_ONLY_UNMATCHED_STUB_ERROR` |
 
 Response JSON files are stored in `conf/resources/response/feedback/`. Each file uses
-`replaceReportId` and `replaceCorrelationId` as placeholders, which are replaced with
+`ReportId` and `CorrelationId` as placeholders, which are replaced with
 freshly generated UUIDs on each request.
 
-### Adding a new scenario
-
-1. Create a JSON file in `conf/resources/response/feedback/`, using `replaceReportId` and
-   `replaceCorrelationId` as placeholders where needed.
-2. Add a new `case` to `fileFor` in `FeedbackStubService`, mapping the scenario name to
-   the filename.
-3. Add the HTTP status in `feedbackFor` using `success(...)` for 200 responses or
-   `error(status, ...)` for error responses.
 
 ### Running the test suite
 
