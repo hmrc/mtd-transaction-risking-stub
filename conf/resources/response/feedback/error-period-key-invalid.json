@@ -1,0 +1,11 @@
+{
+  "code": "INVALID_REQUEST",
+  "message": "Invalid request",
+  "errors": [
+    {
+      "code": "PERIOD_KEY_INVALID",
+      "message": "period key should be a 4 character string",
+      "path": "/periodKey"
+    }
+  ]
+}

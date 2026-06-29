@@ -1,0 +1,4 @@
+{
+  "code": "TAX_PERIOD_NOT_ENDED",
+  "message": "The remote endpoint has indicated that the submission is for a tax period that has not ended"
+}

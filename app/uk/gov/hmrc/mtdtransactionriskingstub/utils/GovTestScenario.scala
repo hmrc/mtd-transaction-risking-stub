@@ -14,12 +14,18 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.mtdtransactionriskingstub.config
+package uk.gov.hmrc.mtdtransactionriskingstub.utils
 
-import javax.inject.{Inject, Singleton}
-import play.api.Configuration
+import play.api.mvc.Headers
 
-@Singleton
-class AppConfig @Inject()(config: Configuration):
+object GovTestScenario:
 
-  val appName: String = config.get[String]("appName")
+  private val defaultScenario = "DEFAULT"
+
+  def effectiveScenario(headers: Headers): String =
+    headers.get("Gov-Test-Scenario").getOrElse(defaultScenario) match
+      case "-" => defaultScenario
+      case x   => x
+
+  def hasScenario(headers: Headers): Boolean =
+    headers.get("Gov-Test-Scenario").exists(v => v.nonEmpty && v != "-")
