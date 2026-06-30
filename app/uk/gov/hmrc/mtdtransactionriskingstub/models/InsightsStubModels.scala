@@ -1,0 +1,53 @@
+/*
+ * Copyright 2026 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package uk.gov.hmrc.mtdtransactionriskingstub.models
+
+import play.api.libs.json.{Json, OFormat}
+
+case class InsightsStubRequest(vatRegistrationNumber: String)
+
+object InsightsStubRequest:
+  given format: OFormat[InsightsStubRequest] = Json.format[InsightsStubRequest]
+
+case class StrategicRisk(
+                          riskCorrelationId: String,
+                          riskScore:         Double,
+                          reasons:           List[String],
+                          riskData:          List[RiskData]
+                        )
+
+object StrategicRisk:
+  given format: OFormat[StrategicRisk] = Json.format[StrategicRisk]
+
+case class RiskData(hops: Int, avgHops: Double)
+
+object RiskData:
+  given format: OFormat[RiskData] = Json.format[RiskData]
+
+case class Insights(strategicRisk: StrategicRisk)
+
+object Insights:
+  given format: OFormat[Insights] = Json.format[Insights]
+
+case class InsightsStubResponse(
+                                 attributeType:  String,
+                                 attributeValue: String,
+                                 insights:       Insights
+                               )
+
+object InsightsStubResponse:
+  given format: OFormat[InsightsStubResponse] = Json.format[InsightsStubResponse]

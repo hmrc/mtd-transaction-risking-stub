@@ -1,3 +1,4 @@
 # microservice specific routes
 
-GET        /hello-world             uk.gov.hmrc.mtdtransactionriskingstub.controllers.MicroserviceHelloWorldController.hello
+POST    /check/insights    uk.gov.hmrc.mtdtransactionriskingstub.controllers.InsightsStubController.checkInsights()
+POST    /feedback         uk.gov.hmrc.mtdtransactionriskingstub.controllers.FeedbackStubController.requestFeedback()

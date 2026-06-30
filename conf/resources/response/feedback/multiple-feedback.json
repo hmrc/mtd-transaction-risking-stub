@@ -1,0 +1,36 @@
+{
+  "reportId": "ReportId",
+  "correlationId": "CorrelationId",
+  "englishFeedback": [
+    {
+      "itemNumber": "001",
+      "title": "VAT due on sales appears low",
+      "body": "The VAT due on sales figure appears lower than expected based on your total sales value.",
+      "action": "Please review box 1 and box 6 of your VAT return.",
+      "path": "/guidance/vat-returns"
+    },
+    {
+      "itemNumber": "002",
+      "title": "Total value of purchases appears high",
+      "body": "The total value of purchases appears higher than expected based on your total sales value.",
+      "action": "Please review box 7 of your VAT return.",
+      "path": "/guidance/vat-returns"
+    }
+  ],
+  "welshFeedback": [
+    {
+      "itemNumber": "001",
+      "title": "Mae'r TAW ar werthiannau'n isel",
+      "body": "Mae ffigwr TAW ar werthiannau'n ymddangos yn is na'r disgwyl.",
+      "action": "Adolygwch flwch 1 a blwch 6 o'ch ffurflen TAW.",
+      "path": "/guidance/vat-returns"
+    },
+    {
+      "itemNumber": "002",
+      "title": "Mae cyfanswm pryniannau'n uchel",
+      "body": "Mae cyfanswm y pryniannau'n ymddangos yn uwch na'r disgwyl.",
+      "action": "Adolygwch flwch 7 o'ch ffurflen TAW.",
+      "path": "/guidance/vat-returns"
+    }
+  ]
+}

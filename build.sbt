@@ -14,6 +14,7 @@ lazy val microservice = Project("mtd-transaction-risking-stub", file("."))
     scalacOptions += "-Wconf:src=routes/.*:s",
   )
   .settings(CodeCoverageSettings.settings: _*)
+  .settings(PlayKeys.playDefaultPort := 9859)
 
 lazy val it = project
   .enablePlugins(PlayScala)

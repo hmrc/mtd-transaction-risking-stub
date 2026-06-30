@@ -16,10 +16,16 @@
 
 package uk.gov.hmrc.mtdtransactionriskingstub.config
 
-import javax.inject.{Inject, Singleton}
-import play.api.Configuration
+import play.api.inject.{Binding, Module as AppModule}
+import play.api.{Configuration, Environment}
 
-@Singleton
-class AppConfig @Inject()(config: Configuration):
+import java.time.Clock
 
-  val appName: String = config.get[String]("appName")
+class Module extends AppModule:
+
+  override def bindings(
+    environment  : Environment,
+    configuration: Configuration
+  ): Seq[Binding[_]] =
+    bind[Clock].toInstance(Clock.systemDefaultZone) :: // inject if current time needs to be controlled in unit tests
+    Nil
