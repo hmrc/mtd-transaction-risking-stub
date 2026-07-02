@@ -1,6 +1,6 @@
 package uk.gov.hmrc.mtdtransactionriskingstub.services
 
-import play.api.libs.json.JsValue
+import play.api.libs.json.{JsValue, Json}
 import uk.gov.hmrc.mtdtransactionriskingstub.utils.StubResource
 
 import javax.inject.{Inject, Singleton}
@@ -12,6 +12,7 @@ class AcknowledgeStubService @Inject()(stubResource: StubResource):
 
   def AcknowledgeFor(scenario: String): Option[StubResponse] =
     scenario match
+      case "DEFAULT"             => Some(success)
       case "INVALID_VRN"         => Some(error(400, "error-invalid-vrn-format.json"))
       case "FORMAT_RECEIPT_ID"   => Some(error(400, "error-invalid-receipt-id-format.json"))
       case "FORMAT_DATETIME"     => Some(error(400, "error-invalid-datetime-format.json"))
@@ -21,9 +22,10 @@ class AcknowledgeStubService @Inject()(stubResource: StubResource):
       case "MATCHING_ RESOURCE_NOT_FOUND" => Some(error(404, "error-matching-resource-not-found.json"))
 
       case _                     => None
-
-  private def success(fileName: String): StubResponse =
-    SuccessResponse(stubResource.loadFeedbackResponse(fileName))
+  
+  
+  private def success: StubResponse =
+    SuccessResponse(Json.obj())
 
   private def error(status: Int, fileName: String): StubResponse =
     ErrorResponse(status, stubResource.loadErrorResponse(fileName))
