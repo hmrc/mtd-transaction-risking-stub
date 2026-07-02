@@ -1,0 +1,4 @@
+{
+  "code": "MATCHING_ RESOURCE_NOT_FOUND",
+  "message": "A resource with the name in the request can not be found in the API"
+}
