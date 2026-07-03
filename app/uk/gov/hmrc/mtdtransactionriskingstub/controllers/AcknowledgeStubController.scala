@@ -41,7 +41,7 @@ class AcknowledgeStubController  @Inject()(
 
     val response: Result = AcknowledgeService.AcknowledgeFor(scenario) match
       case Some(SuccessResponse(body)) =>
-        NoContent
+        Ok(Json.obj())
           .withHeaders("X-CorrelationId" -> UUID.randomUUID().toString)
       case Some(ErrorResponse(status, body)) =>
         Status(status)(body)
