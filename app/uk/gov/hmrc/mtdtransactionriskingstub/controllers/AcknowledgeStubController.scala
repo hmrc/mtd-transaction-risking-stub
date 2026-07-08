@@ -29,8 +29,8 @@ import scala.concurrent.Future
 
 @Singleton
 class AcknowledgeStubController  @Inject()(
-                                        cc: ControllerComponents,
-                                        AcknowledgeService: AcknowledgeStubService
+                                            cc: ControllerComponents,
+                                            acknowledgeStubService: AcknowledgeStubService
                                       ) extends BackendController(cc), Logging:
 
   def requestAcknowledge(): Action[AnyContent] = Action.async { implicit request =>
@@ -39,10 +39,9 @@ class AcknowledgeStubController  @Inject()(
 
     logger.info(s"[AcknowledgeStubController] Gov-Test-Scenario: $scenario")
 
-    val response: Result = AcknowledgeService.AcknowledgeFor(scenario) match
-      case Some(SuccessResponse(body)) =>
-        Ok(Json.obj())
-          .withHeaders("X-CorrelationId" -> UUID.randomUUID().toString)
+    val response: Result = acknowledgeStubService.acknowledgeFor(scenario) match
+      case Some(SuccessResponse(_)) =>
+        NoContent.withHeaders("X-CorrelationId" -> UUID.randomUUID().toString)
       case Some(ErrorResponse(status, body)) =>
         Status(status)(body)
           .withHeaders("X-CorrelationId" -> UUID.randomUUID().toString)

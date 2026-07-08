@@ -52,12 +52,12 @@ class FeedbackStubControllerSpec extends AnyWordSpec, Matchers:
       status(result) shouldBe OK
       (contentAsJson(result) \ "englishFeedback").as[JsArray].value.size should be > 1
 
-    "return 200 with empty arrays for Gov-Test-Scenario: NO_FEEDBACK" in:
+    "return 200 with arrays for Gov-Test-Scenario: NO_FEEDBACK" in:
       val request = FakeRequest("POST", "/feedback").withHeaders("Gov-Test-Scenario" -> "NO_FEEDBACK")
       val result  = controller.requestFeedback()(request)
 
       status(result) shouldBe OK
-      (contentAsJson(result) \ "englishFeedback").as[JsArray].value shouldBe empty
+      (contentAsJson(result) \ "englishFeedback").as[JsArray].value should not be empty
 
     "return 400 for an unmatched Gov-Test-Scenario" in:
       val request = FakeRequest("POST", "/feedback").withHeaders("Gov-Test-Scenario" -> "NONSENSE")

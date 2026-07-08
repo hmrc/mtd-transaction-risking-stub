@@ -1,4 +1,4 @@
 {
-  "code": "FORMAT_RECEIPT_ID",
+  "code": "FORMAT_REPORT_ID",
   "message": "The provided Report ID is invalid"
 }

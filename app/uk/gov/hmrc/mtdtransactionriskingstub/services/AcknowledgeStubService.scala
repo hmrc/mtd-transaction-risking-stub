@@ -16,7 +16,8 @@
 
 package uk.gov.hmrc.mtdtransactionriskingstub.services
 
-import play.api.libs.json.{JsValue, Json}
+import play.api.http.Status.{BAD_REQUEST, FORBIDDEN, NOT_FOUND, UNAUTHORIZED}
+import play.api.libs.json.Json
 import uk.gov.hmrc.mtdtransactionriskingstub.utils.StubResource
 
 import javax.inject.{Inject, Singleton}
@@ -26,17 +27,16 @@ import javax.inject.{Inject, Singleton}
 @Singleton
 class AcknowledgeStubService @Inject()(stubResource: StubResource):
 
-  def AcknowledgeFor(scenario: String): Option[StubResponse] =
+  def acknowledgeFor(scenario: String): Option[StubResponse] =
     scenario match
       case "DEFAULT"             => Some(success)
-      case "INVALID_VRN"         => Some(error(400, "error-invalid-vrn-format.json"))
-      case "FORMAT_RECEIPT_ID"   => Some(error(400, "error-invalid-receipt-id-format.json"))
-      case "FORMAT_DATETIME"     => Some(error(400, "error-invalid-datetime-format.json"))
-      case "INVALID_CREDENTIALS" => Some(error(401, "error-invalid-credentials.json"))
-      case "CLIENT_OR_AGENT_NOT_AUTHORISED"    => Some(error(403, "error-client-or-agent-not-authorised.json"))
-      case "CORRELATION_ID"    => Some(error(403, "error-correlation-id.json"))
-      case "MATCHING_RESOURCE_NOT_FOUND" => Some(error(404, "error-matching-resource-not-found.json"))
-
+      case "INVALID_VRN"         => Some(error(BAD_REQUEST,   "error-invalid-vrn-format.json"))
+      case "INVALID_REPORTID"    => Some(error(BAD_REQUEST,   "error-invalid-report-id.json"))
+      case "INVALID_DATETIME"    => Some(error(BAD_REQUEST,   "error-invalid-datetime.json"))
+      case "INVALID_CREDENTIALS" => Some(error(UNAUTHORIZED,  "error-invalid-credentials.json"))
+      case "NOT_AUTHORISED"      => Some(error(FORBIDDEN,     "error-client-or-agent-not-authorised.json"))
+      case "CORRELATION_ID"      => Some(error(FORBIDDEN,     "error-correlation-id.json"))
+      case "NOT_FOUND"           => Some(error(NOT_FOUND,     "error-matching-resource-not-found.json"))
       case _                     => None
   
   
@@ -44,4 +44,4 @@ class AcknowledgeStubService @Inject()(stubResource: StubResource):
     SuccessResponse(Json.obj())
 
   private def error(status: Int, fileName: String): StubResponse =
-    ErrorResponse(status, stubResource.loadErrorResponse(fileName))
+    ErrorResponse(status, stubResource.loadErrorResponse("acknowledge", fileName))

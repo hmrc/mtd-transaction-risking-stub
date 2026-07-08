@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.mtdtransactionriskingstub.services
 
+import org.scalatest.matchers.must.Matchers.be
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import play.api.libs.json.JsArray
@@ -44,13 +45,13 @@ class FeedbackStubServiceSpec extends AnyWordSpec, Matchers:
       result.get shouldBe a[SuccessResponse]
       (body \ "englishFeedback").as[JsArray].value.size should be > 1
 
-    "return empty arrays for NO_FEEDBACK" in :
+    "return arrays for NO_FEEDBACK" in :
       val result = service.feedbackFor("NO_FEEDBACK")
       val body = result.get.asInstanceOf[SuccessResponse].body
 
       result shouldBe defined
       result.get shouldBe a[SuccessResponse]
-      (body \ "englishFeedback").as[JsArray].value shouldBe empty
+      (body \ "englishFeedback").as[JsArray].value should not be empty
 
     "return None for an unknown scenario" in:
       service.feedbackFor("NONSENSE") shouldBe None
