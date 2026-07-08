@@ -44,4 +44,4 @@ class FeedbackStubService @Inject()(stubResource: StubResource):
     SuccessResponse(stubResource.loadFeedbackResponse(fileName))
 
   private def error(status: Int, fileName: String): StubResponse =
-    ErrorResponse(status, stubResource.loadErrorResponse(fileName))
+    ErrorResponse(status, stubResource.loadErrorResponse("feedback", fileName))
