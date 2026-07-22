@@ -19,6 +19,7 @@ package uk.gov.hmrc.mtdtransactionriskingstub.services
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import play.api.libs.json.{JsObject, JsValue, Json}
+import uk.gov.hmrc.mtdtransactionriskingstub.utils.ValidationStubError
 
 class VatValidatorServiceSpec extends AnyWordSpec, Matchers:
 
@@ -41,8 +42,9 @@ class VatValidatorServiceSpec extends AnyWordSpec, Matchers:
       |""".stripMargin
   )
 
-  private def codes(errors: Seq[JsObject]): Seq[String]  = errors.map(e => (e \ "code").as[String])
-  private def paths(errors: Seq[JsObject]): Seq[String]  = errors.flatMap(e => (e \ "path").asOpt[String])
+  private def codes(errors: Seq[ValidationStubError]): Seq[String] = errors.map(_.code)
+  private def paths(errors: Seq[ValidationStubError]): Seq[String] = errors.flatMap(_.path)
+
   private def withField(field: String, value: JsValue): JsValue =
     validBody.as[JsObject] + (field -> value)
   private def without(field: String): JsValue =
@@ -101,23 +103,16 @@ class VatValidatorServiceSpec extends AnyWordSpec, Matchers:
       paths(result) should contain("/netVatDue")
 
     "not run cross-field rules while field-level errors are present" in :
-      // totalVatDue is wrong (would trigger VAT_TOTAL_VALUE) but a field is also missing —
-      // field errors take precedence, cross-field is skipped
       val body   = without("vatDueSales").as[JsObject] + ("totalVatDue" -> Json.toJson(BigDecimal("999.00")))
       val result = VatValidatorService.validate(vrn, body)
       codes(result) should contain("MANDATORY_FIELD_MISSING")
       codes(result) should not contain "VAT_TOTAL_VALUE"
 
     "trip both VAT_TOTAL_VALUE and VAT_NET_VALUE when totalVatDue is changed in isolation" in :
-      // totalVatDue = 201 breaks the total rule (201 ≠ 100 + 100) AND the net rule
-      // (netVatDue is 100, but |201 - 100| = 101), because the two cross-field rules
-      // both depend on totalVatDue
       val result = VatValidatorService.validate(vrn, withField("totalVatDue", Json.toJson(BigDecimal("201.00"))))
       codes(result) should contain allOf("VAT_TOTAL_VALUE", "VAT_NET_VALUE")
 
     "trip only VAT_TOTAL_VALUE when netVatDue is adjusted to keep the net rule satisfied" in :
-      // Change totalVatDue to 201 AND set netVatDue to |201 - 100| = 101 so the net rule
-      // passes — isolating the total rule as the single failure
       val body = validBody.as[JsObject] +
         ("totalVatDue" -> Json.toJson(BigDecimal("201.00"))) +
         ("netVatDue" -> Json.toJson(BigDecimal("101.00")))
@@ -128,3 +123,17 @@ class VatValidatorServiceSpec extends AnyWordSpec, Matchers:
       val body   = withField("vatDueSales", Json.toJson("five")).as[JsObject] + ("periodKey" -> Json.toJson("TOOLONG"))
       val result = VatValidatorService.validate(vrn, body)
       codes(result) should contain allOf("INVALID_NUMERIC_VALUE", "PERIOD_KEY_INVALID")
+
+    "mark a single self-wrapping error (period key) with selfWraps = true and produce the INVALID_REQUEST form" in :
+      val result = VatValidatorService.validate(vrn, withField("periodKey", Json.toJson("TOOLONG")))
+      result.size shouldBe 1
+      result.head.selfWraps shouldBe true
+      (result.head.singleForm \ "code").as[String] shouldBe "INVALID_REQUEST"
+      ((result.head.singleForm \ "errors")(0) \ "code").as[String] shouldBe "PERIOD_KEY_INVALID"
+
+    "mark a single non-wrapping error (mandatory field) with selfWraps = false and produce the bare form" in :
+      val result = VatValidatorService.validate(vrn, without("vatDueSales"))
+      result.size shouldBe 1
+      result.head.selfWraps shouldBe false
+      (result.head.singleForm \ "code").as[String] shouldBe "MANDATORY_FIELD_MISSING"
+      (result.head.singleForm \ "path").as[String] shouldBe "/vatDueSales"

@@ -33,15 +33,18 @@ class ValidateStubController @Inject()(cc: ControllerComponents) extends Backend
     val correlationId = request.headers.get("X-CorrelationId").getOrElse("no-correlation-id")
 
     val result = VatValidatorService.validate(vrn, request.body) match
-
       case Seq() =>
         NoContent
 
       case Seq(single) =>
-        BadRequest(single)
+        BadRequest(single.singleForm)
 
       case many =>
-        BadRequest(Json.obj("code" -> "INVALID_REQUEST", "message" -> "Invalid request", "errors" -> many))
+        BadRequest(Json.obj(
+          "code" -> "INVALID_REQUEST",
+          "message" -> "Invalid request",
+          "errors" -> many.map(_.bare)
+        ))
 
     Future.successful(result.withHeaders("X-CorrelationId" -> correlationId))
   }

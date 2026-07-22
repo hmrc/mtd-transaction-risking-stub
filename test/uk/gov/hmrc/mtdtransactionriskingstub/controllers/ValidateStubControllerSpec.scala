@@ -66,13 +66,21 @@ class ValidateStubControllerSpec extends AnyWordSpec, Matchers:
       status(result) shouldBe NO_CONTENT
       header("X-CorrelationId", result) shouldBe Some("no-correlation-id")
 
-    "return 400 with a single bare error when exactly one rule fails" in :
+    "return 400 with wrapper for PERIOD_KEY_INVALID error" in :
       val badBody = validBody.as[JsObject] + ("periodKey" -> Json.toJson("TOOLONG"))
       val result  = controller.validateReturn(vrn)(requestWith(badBody, Some("test-id")))
 
       status(result) shouldBe BAD_REQUEST
-      (contentAsJson(result) \ "code").as[String] shouldBe "PERIOD_KEY_INVALID"
-      (contentAsJson(result) \ "errors").toOption shouldBe None
+      (contentAsJson(result) \ "code").as[String] shouldBe "INVALID_REQUEST"
+      ((contentAsJson(result) \ "errors")(0) \ "code").as[String] shouldBe "PERIOD_KEY_INVALID"
+      header("X-CorrelationId", result) shouldBe Some("test-id")
+
+    "return 400 with bare error for numericTypeErrors error" in :
+      val badBody = validBody.as[JsObject] + ("vatDueSales" -> Json.toJson("NonNumber"))
+      val result = controller.validateReturn(vrn)(requestWith(badBody, Some("test-id")))
+
+      status(result) shouldBe BAD_REQUEST
+      (contentAsJson(result) \ "code").as[String] shouldBe "INVALID_NUMERIC_VALUE"
       header("X-CorrelationId", result) shouldBe Some("test-id")
 
     "return 400 with an INVALID_REQUEST wrapper and errors array when multiple rules fail" in :

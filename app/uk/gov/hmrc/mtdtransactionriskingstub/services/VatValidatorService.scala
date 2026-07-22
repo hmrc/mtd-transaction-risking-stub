@@ -16,7 +16,8 @@
 
 package uk.gov.hmrc.mtdtransactionriskingstub.services
 
-import play.api.libs.json.{JsValue, Json, JsObject}
+import play.api.libs.json.JsValue
+import uk.gov.hmrc.mtdtransactionriskingstub.utils.ValidationStubError
 
 object VatValidatorService:
 
@@ -33,51 +34,48 @@ object VatValidatorService:
   private val wholeMax   = BigDecimal("9999999999999")
   private val netVatMax  = BigDecimal("99999999999.99")
 
-  def validate(vrn: String, body: JsValue): Seq[JsObject] =
-    if !vrn.matches(vrnRegex) then Seq(err("VRN_INVALID", "The provided Vrn is invalid"))
+  private val decimalRangeMessage = "amount should be a monetary value (to 2 decimal places), between -9,999,999,999,999.99 and 9,999,999,999,999.99"
+  private val wholeRangeMessage = "The value must be between -9999999999999 and 9999999999999"
+  private val netVatRangeMessage = "amount should be a monetary value (to 2 decimal places), between 0 and 99,999,999,999.99"
+
+  def validate(vrn: String, body: JsValue): Seq[ValidationStubError] =
+    if !vrn.matches(vrnRegex) then Seq(ValidationStubError("VRN_INVALID", "The provided VRN is invalid", None, selfWraps = false))
     else
       val fieldErrors = missingFieldErrors(body) ++ periodKeyErrors(body) ++ numericTypeErrors(body) ++ rangeErrors(body)
       if fieldErrors.nonEmpty then fieldErrors else crossFieldErrors(body)
 
-  private def err(code: String, message: String, path: Option[String] = None): JsObject =
-    Json.obj("code" -> code, "message" -> message) ++ path.fold(Json.obj())(p => Json.obj("path" -> p))
+  private def missingFieldErrors(body: JsValue): Seq[ValidationStubError] =
+    mandatoryFields
+      .filter(field => (body \ field).isEmpty)
+      .map(field => ValidationStubError("MANDATORY_FIELD_MISSING", "a mandatory field is missing", Some(s"/$field"), selfWraps = false))
+
+  private def periodKeyErrors(body: JsValue): Seq[ValidationStubError] =
+    (body \ "periodKey").asOpt[String] match
+      case Some(periodKey) if !periodKey.matches(periodKeyRegex) =>
+        Seq(ValidationStubError("PERIOD_KEY_INVALID", "period key should be a 4 character string", Some("/periodKey"), selfWraps = true))
+      case None if (body \ "periodKey").isDefined =>
+        Seq(ValidationStubError("INVALID_STRING_VALUE", "please provide a string field", Some("/periodKey"), selfWraps = true))
+      case _ => Seq.empty
+
+  private def numericTypeErrors(body: JsValue): Seq[ValidationStubError] =
+    (decimalFields ++ nonDecimalFields :+ "netVatDue")
+      .filter(field => (body \ field).isDefined && numeric(body, field).isEmpty)
+      .map(field => ValidationStubError("INVALID_NUMERIC_VALUE", "please provide a numeric field", Some(s"/$field"), selfWraps = false))
 
   private def numeric(body: JsValue, field: String): Option[BigDecimal] =
     (body \ field).asOpt[BigDecimal]
 
-  private def missingFieldErrors(body: JsValue): Seq[JsObject] =
-    mandatoryFields
-      .filter(field => (body \ field).isEmpty)
-      .map(field => err("MANDATORY_FIELD_MISSING", "a mandatory field is missing", Some(s"/$field")))
-
-  private def periodKeyErrors(body: JsValue): Seq[JsObject] =
-    (body \ "periodKey").asOpt[String] match
-      case Some(periodKey) if !periodKey.matches(periodKeyRegex) =>
-        Seq(err("PERIOD_KEY_INVALID", "period key should be a 4 character string", Some("/periodKey")))
-      case None if (body \ "periodKey").isDefined =>
-        Seq(err("INVALID_STRING_VALUE", "periodKey should be a string", Some("/periodKey")))
-      case _ => Seq.empty
-
-  private def numericTypeErrors(body: JsValue): Seq[JsObject] =
-    (decimalFields ++ nonDecimalFields :+ "netVatDue")
-      .filter(field => (body \ field).isDefined && numeric(body, field).isEmpty)
-      .map(field => err("INVALID_NUMERIC_VALUE", s"$field should be a valid number", Some(s"/$field")))
-
-  private def rangeErrors(body: JsValue): Seq[JsObject] =
-    def outOfRange(field: String, min: BigDecimal, max: BigDecimal, maxScale: Int, message: String): Option[JsObject] =
+  private def rangeErrors(body: JsValue): Seq[ValidationStubError] =
+    def outOfRange(field: String, min: BigDecimal, max: BigDecimal, maxScale: Int, message: String): Option[ValidationStubError] =
       numeric(body, field)
         .filter(value => value < min || value > max || value.scale > maxScale)
-        .map(_ => err("INVALID_MONETARY_AMOUNT", message, Some(s"/$field")))
+        .map(_ => ValidationStubError("INVALID_MONETARY_AMOUNT", message, Some(s"/$field"), selfWraps = false))
 
-    val decimalMessage = "amount should be a monetary value (to 2 decimal places), between -9999999999999.99 and 9999999999999.99"
-    val wholeMessage   = "The value must be between -9999999999999 and 9999999999999"
-    val netVatMessage  = "amount should be a non-negative monetary value (to 2 decimal places), between 0.00 and 99999999999.99"
+    decimalFields.flatMap(outOfRange(_, decimalMin, decimalMax, maxScale = 2, decimalRangeMessage)) ++
+      nonDecimalFields.flatMap(outOfRange(_, wholeMin, wholeMax, maxScale = 0, wholeRangeMessage)) ++
+      outOfRange("netVatDue", min = 0, netVatMax, maxScale = 2, netVatRangeMessage)
 
-    decimalFields.flatMap(outOfRange(_, decimalMin, decimalMax, maxScale = 2, decimalMessage)) ++
-      nonDecimalFields.flatMap(outOfRange(_, wholeMin, wholeMax, maxScale = 0, wholeMessage)) ++
-      outOfRange("netVatDue", min = 0, netVatMax, maxScale = 2, netVatMessage)
-
-  private def crossFieldErrors(body: JsValue): Seq[JsObject] =
+  private def crossFieldErrors(body: JsValue): Seq[ValidationStubError] =
     val result = for
       sales     <- numeric(body, "vatDueSales")
       acq       <- numeric(body, "vatDueAcquisitions")
@@ -86,9 +84,9 @@ object VatValidatorService:
       net       <- numeric(body, "netVatDue")
     yield
       val totalError = Option.when(total != sales + acq):
-        err("VAT_TOTAL_VALUE", "totalVatDue should be equal to vatDueSales + vatDueAcquisitions", Some("/totalVatDue"))
+        ValidationStubError("VAT_TOTAL_VALUE", "totalVatDue should be equal to vatDueSales + vatDueAcquisitions", Some("/totalVatDue"), selfWraps = true)
       val netError = Option.when(net != (total - reclaimed).abs):
-        err("VAT_NET_VALUE", "netVatDue should be the difference between the largest and the smallest values among totalVatDue and vatReclaimedCurrPeriod", Some("/netVatDue"))
+        ValidationStubError("VAT_NET_VALUE", "netVatDue should be the difference between the largest and the smallest values among totalVatDue and vatReclaimedCurrPeriod", Some("/netVatDue"), selfWraps = true)
       totalError.toSeq ++ netError.toSeq
 
     result.getOrElse(Seq.empty)
