@@ -39,7 +39,7 @@ class AcknowledgeStubServiceSpec extends AnyWordSpec, Matchers, MockitoSugar:
       service.acknowledgeFor("DEFAULT") shouldBe Some(SuccessResponse(Json.obj()))
 
     "return a 400 FORMAT_VRN error for INVALID_VRN" in:
-      when(stubResource.loadErrorResponse(eqTo("acknowledge"), eqTo("error-invalid-vrn-format.json")))
+      when(stubResource.loadErrorResponse(eqTo("acknowledge"), eqTo("error-vrn-invalid.json")))
         .thenReturn(errorJson("FORMAT_VRN"))
       service.acknowledgeFor("INVALID_VRN") shouldBe Some(ErrorResponse(BAD_REQUEST, errorJson("FORMAT_VRN")))
 

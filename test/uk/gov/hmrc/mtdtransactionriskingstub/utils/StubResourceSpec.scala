@@ -38,7 +38,7 @@ class StubResourceSpec extends AnyWordSpec, Matchers:
       (json \ "code").as[String] shouldBe "FORMAT_REPORT_ID"
 
     "load and parse a feedback error file from the feedback folder" in:
-      val json = stubResource.loadErrorResponse("feedback", "error-invalid-vrn-format.json")
+      val json = stubResource.loadErrorResponse("feedback", "error-period-key-invalid.json")
       (json \ "code").as[String].nonEmpty shouldBe true
 
     "throw when the error file cannot be found" in:
