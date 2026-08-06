@@ -30,7 +30,7 @@ class AcknowledgeStubService @Inject()(stubResource: StubResource):
   def acknowledgeFor(scenario: String): Option[StubResponse] =
     scenario match
       case "DEFAULT"             => Some(success)
-      case "INVALID_VRN"         => Some(error(BAD_REQUEST,   "error-invalid-vrn-format.json"))
+      case "INVALID_VRN"         => Some(error(BAD_REQUEST,   "error-vrn-invalid.json"))
       case "INVALID_REPORTID"    => Some(error(BAD_REQUEST,   "error-invalid-report-id.json"))
       case "INVALID_DATETIME"    => Some(error(BAD_REQUEST,   "error-invalid-datetime.json"))
       case "INVALID_CREDENTIALS" => Some(error(UNAUTHORIZED,  "error-invalid-credentials.json"))
