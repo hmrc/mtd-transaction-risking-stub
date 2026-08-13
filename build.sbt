@@ -13,7 +13,7 @@ lazy val microservice = Project("mtd-transaction-risking-stub", file("."))
     // suppress warnings in generated routes files
     scalacOptions += "-Wconf:src=routes/.*:s",
   )
-  .settings(CodeCoverageSettings.settings: _*)
+  .settings(CodeCoverageSettings.scoverageSettings)
   .settings(PlayKeys.playDefaultPort := 9859)
 
 lazy val it = project
