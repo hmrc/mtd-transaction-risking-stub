@@ -70,7 +70,9 @@ class ValidateStubControllerSpec extends AnyWordSpec, Matchers:
     "return 204 for a valid body with an unknown period key" in :
       val unknownPeriodBody = validBody.as[JsObject] + ("periodKey" -> Json.toJson("ZZ99"))
       val result = controller.validateReturn(vrn)(requestWith(unknownPeriodBody, Some("test-id")))
-      status(result) shouldBe NO_CONTENT
+      status(result) shouldBe BAD_REQUEST
+      (contentAsJson(result) \ "code").as[String] shouldBe "PERIOD_KEY_NOT_FOUND"
+      header("X-CorrelationId", result) shouldBe Some("test-id")
 
     "return 400 TAX_PERIOD_NOT_ENDED for a period that has not ended" in :
       // AB14 ends 2026-09-30, which has not yet passed
