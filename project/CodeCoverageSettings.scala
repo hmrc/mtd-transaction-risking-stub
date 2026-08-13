@@ -1,17 +1,15 @@
-import sbt.Keys.parallelExecution
-import sbt.{Def, Setting, Test}
+import sbt.Def
 import scoverage.ScoverageKeys
 
 object CodeCoverageSettings {
-  lazy val scoverageSettings: Seq[Def.Setting[? >: String & Double & Boolean]] = Seq(
-    // Semicolon-separated list of regexes matching classes to exclude
+  lazy val scoverageSettings: Seq[Def.Setting[?]] = Seq(
     ScoverageKeys.coverageExcludedFiles :=
-      """.*/target/scala-.*/routes/main/router/RoutesPrefix\.scala;
-        |.*/target/scala-.*/routes/main/router/Routes\.scala;
-        |.*/target/scala-.*/routes/main/router/ReverseRoutes\.scala;
-        |.*/target/scala-.*/routes/main/router/javascript/JavaScriptReverseRoutes\.scala;
-        |.*/target/scala-.*/routes/main/(app|prod)/routes_routing\.scala;
-        |.*/target/scala-.*/routes/main/(app|prod)/routes_reverseRouting\.scala
+      """.*RoutesPrefix;
+        |.*Routes;
+        |.*ReverseRoutes;
+        |.*JavaScriptReverseRoutes;
+        |.*routes_routing;
+        |.*routes_reverseRouting
         |""".stripMargin.replace("\n", ""),
     ScoverageKeys.coverageMinimumStmtTotal := 80,
     ScoverageKeys.coverageFailOnMinimum := true,
