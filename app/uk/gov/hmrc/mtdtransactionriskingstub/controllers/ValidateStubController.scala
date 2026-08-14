@@ -36,9 +36,8 @@ class ValidateStubController @Inject()(cc: ControllerComponents) extends Backend
       case Seq() =>
         val periodKey = (request.body \ "periodKey").asOpt[String].getOrElse("")
         ObligationStubService.lookupByPeriodKey(periodKey) match
-          case Right(Some(obligation)) => Ok(Json.toJson(obligation))
-          case Right(None)             => NoContent
-          case Left(error)             => BadRequest(error.singleForm)
+          case Right(obligation) => Ok(Json.toJson(obligation))
+          case Left(error)       => BadRequest(error.singleForm)
 
       case Seq(single) =>
         BadRequest(single.singleForm)

@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.mtdtransactionriskingstub.services
 
+import uk.gov.hmrc.mtdtransactionriskingstub.models.StubObligation
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 
@@ -25,10 +26,10 @@ class ObligationStubServiceSpec extends AnyWordSpec, Matchers:
 
   "lookupByPeriodKey" should:
 
-    "return Right(Some(obligation)) when the period key is known and the end date is in the past" in:
+    "return Right(obligation) when the period key is known and the end date is in the past" in:
       val dayAfterEnd = LocalDate.parse("2026-04-01")
       ObligationStubService.lookupByPeriodKey("AB12", dayAfterEnd) shouldBe
-        Right(Some(ObligationStubService.StubObligation("AB12", "2026-01-01", "2026-03-31", "2036-05-07")))
+        Right(StubObligation("AB12", "2026-01-01", "2026-03-31", "2026-05-07"))
 
     "return Left(TAX_PERIOD_NOT_ENDED) when the period key is known and today equals the end date" in:
       val onEndDate = LocalDate.parse("2026-03-31")
