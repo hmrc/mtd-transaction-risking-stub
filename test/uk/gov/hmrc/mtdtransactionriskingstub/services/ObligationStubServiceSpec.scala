@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.mtdtransactionriskingstub.services
 
+import org.scalatest.EitherValues.convertLeftProjectionToValuable
 import uk.gov.hmrc.mtdtransactionriskingstub.models.StubObligation
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
@@ -28,22 +29,13 @@ class ObligationStubServiceSpec extends AnyWordSpec, Matchers:
 
     "return Right(obligation) when the period key is known and the end date is in the past" in:
       val dayAfterEnd = LocalDate.parse("2026-04-01")
-      ObligationStubService.lookupByPeriodKey("AB12", dayAfterEnd) shouldBe
-        Right(StubObligation("AB12", "2026-01-01", "2026-03-31", "2026-05-07"))
+      ObligationStubService.lookupByPeriodKey("AB12", dayAfterEnd) shouldBe Right(StubObligation("AB12", "2026-01-01", "2026-03-31", "2026-05-07"))
 
     "return Left(TAX_PERIOD_NOT_ENDED) when the period key is known and today equals the end date" in:
-      val onEndDate = LocalDate.parse("2026-03-31")
-      val result    = ObligationStubService.lookupByPeriodKey("AB12", onEndDate)
-      result.isLeft shouldBe true
-      result.swap.getOrElse(fail("Expected Left result")).code shouldBe "TAX_PERIOD_NOT_ENDED"
+      ObligationStubService.lookupByPeriodKey("AB12", LocalDate.parse("2026-03-31")).left.value.code shouldBe "TAX_PERIOD_NOT_ENDED"
 
     "return Left(TAX_PERIOD_NOT_ENDED) when the period key is known and the end date is in the future" in:
-      val beforeEnd = LocalDate.parse("2026-03-01")
-      val result    = ObligationStubService.lookupByPeriodKey("AB12", beforeEnd)
-      result.isLeft shouldBe true
-      result.swap.getOrElse(fail("Expected Left result")).code shouldBe "TAX_PERIOD_NOT_ENDED"
+      ObligationStubService.lookupByPeriodKey("AB12", LocalDate.parse("2026-03-01")).left.value.code shouldBe "TAX_PERIOD_NOT_ENDED"
 
     "return Left(PERIOD_KEY_NOT_FOUND) when the period key is not in the hardcoded set" in:
-      val result = ObligationStubService.lookupByPeriodKey("ZZZZ", LocalDate.now())
-      result.isLeft shouldBe true
-      result.swap.getOrElse(fail("Expected Left result")).code shouldBe "PERIOD_KEY_NOT_FOUND"
+      ObligationStubService.lookupByPeriodKey("ZZZZ", LocalDate.parse("2026-04-01")).left.value.code shouldBe "PERIOD_KEY_NOT_FOUND"
