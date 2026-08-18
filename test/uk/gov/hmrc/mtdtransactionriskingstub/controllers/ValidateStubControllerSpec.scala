@@ -56,15 +56,30 @@ class ValidateStubControllerSpec extends AnyWordSpec, Matchers:
 
   "validateReturn" should :
 
-    "return 204 with a correlation header for a valid body" in :
+    "return 200 with obligation JSON and a correlation header for a valid body with a known ended period" in :
       val result = controller.validateReturn(vrn)(requestWith(validBody, Some("test-id")))
-      status(result) shouldBe NO_CONTENT
+      status(result) shouldBe OK
+      (contentAsJson(result) \ "periodKey").as[String] shouldBe "AB12"
       header("X-CorrelationId", result) shouldBe Some("test-id")
 
-    "generate a correlation id ()when the header is absent" in :
+    "generate a correlation id when the header is absent" in :
       val result = controller.validateReturn(vrn)(requestWith(validBody))
-      status(result) shouldBe NO_CONTENT
+      status(result) shouldBe OK
       header("X-CorrelationId", result) shouldBe Some("no-correlation-id")
+
+    "return 400 for a valid body with an unknown period key" in :
+      val unknownPeriodBody = validBody.as[JsObject] + ("periodKey" -> Json.toJson("ZZ99"))
+      val result = controller.validateReturn(vrn)(requestWith(unknownPeriodBody, Some("test-id")))
+      status(result) shouldBe BAD_REQUEST
+      (contentAsJson(result) \ "code").as[String] shouldBe "PERIOD_KEY_NOT_FOUND"
+      header("X-CorrelationId", result) shouldBe Some("test-id")
+
+    "return 400 TAX_PERIOD_NOT_ENDED for a period that has not ended" in :
+      val requestBody = validBody.as[JsObject] + ("periodKey" -> Json.toJson("AB14"))
+      val result     = controller.validateReturn(vrn)(requestWith(requestBody, Some("test-id")))
+      status(result) shouldBe BAD_REQUEST
+      (contentAsJson(result) \ "code").as[String] shouldBe "TAX_PERIOD_NOT_ENDED"
+      header("X-CorrelationId", result) shouldBe Some("test-id")
 
     "return 400 with wrapper for PERIOD_KEY_INVALID error" in :
       val badBody = validBody.as[JsObject] + ("periodKey" -> Json.toJson("TOOLONG"))

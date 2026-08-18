@@ -1,26 +1,18 @@
-import sbt.Setting
+import sbt.Def
 import scoverage.ScoverageKeys
 
 object CodeCoverageSettings {
-
-  private val excludedPackages: Seq[String] = Seq(
-    "<empty>",
-    "app",
-    "prod",
-    "testOnlyDoNotUseInAppConf",
-    ".*Reverse.*",
-    ".*javascript.*"
-  )
-
-  private val excludedFiles: Seq[String] = Seq(
-    ".*target.scala-3\\.3\\.6.routes.*"
-  )
-
-  val settings: Seq[Setting[?]] = Seq(
-    ScoverageKeys.coverageExcludedPackages := excludedPackages.mkString(";"),
-    ScoverageKeys.coverageExcludedFiles := excludedFiles.mkString(";"),
+  lazy val scoverageSettings: Seq[Def.Setting[?]] = Seq(
+    ScoverageKeys.coverageExcludedFiles :=
+      """.*RoutesPrefix;
+        |.*Routes;
+        |.*ReverseRoutes;
+        |.*JavaScriptReverseRoutes;
+        |.*routes_routing;
+        |.*routes_reverseRouting
+        |""".stripMargin.replace("\n", ""),
     ScoverageKeys.coverageMinimumStmtTotal := 80,
-    ScoverageKeys.coverageFailOnMinimum := false,
+    ScoverageKeys.coverageFailOnMinimum := true,
     ScoverageKeys.coverageHighlighting := true
   )
 }
