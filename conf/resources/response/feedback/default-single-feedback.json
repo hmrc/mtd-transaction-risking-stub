@@ -1,16 +1,16 @@
 {
-  "reportId": "ReportId",
-  "correlationId": "CorrelationId",
+  "reportId": "f2fb30e5-4ab6-4a29-b3c1-c00000000001",
+  "correlationId": "E9F65715BBC9222477B27074804BBDD5C73CDE62F84D8B00CFD05B883534AF3D",
   "englishFeedback": [
     {
       "itemNumber": "1",
-      "title": "VAT due on sales appears low",
+      "title": "HMRC feedback: VAT due on sales appears low",
       "body": "The VAT due on sales figure appears lower than expected based on your total sales value.",
       "action": "Please review box 1 and box 6 of your VAT return.",
       "links": [
         { "title": "VAT Notice 700", "url": "https://www.gov.uk/guidance/vat-notice-700-the-vat-guide" }
       ],
-      "path": "vatDueAcquisitions"
+      "path": "vatDueSales"
     }
   ],
   "welshFeedback": [
@@ -22,7 +22,7 @@
       "links": [
         { "title": "Hysbysiad TAW 700", "url": "https://www.gov.uk/guidance/vat-notice-700-the-vat-guide" }
       ],
-      "path": "vatDueAcquisitions"
+      "path": "vatDueSales"
     }
   ]
 }

@@ -3,32 +3,32 @@
   "reportId": "f2fb30e5-4ab6-4a29-b3c1-c7264259ff1c",
   "englishFeedback": [
     {
-      "itemNumber": "1",
-      "title": "VAT Return",
-      "body": "We have no feedback to offer",
-      "action": "You should still confirm the accuracy of your VAT Return before submitting.",
+      "itemNumber": "0",
+      "title": "HMRC feedback: HMRC Assist has not returned any messages.",
+      "body": "This is not a complete check of your return or confirmation that your return is accurate. Your return has not been submitted at this stage.",
+      "action": "Consider any further checks before finalising your return.",
       "links": [
         {
           "title": "VAT guidance",
           "url": "https://www.gov.uk/vat-returns"
         }
       ],
-      "path": "vatDueSales"
+      "path": ""
     }
   ],
   "welshFeedback": [
     {
-      "itemNumber": "1",
-      "title": "Ymholiad Ffurflen TAW",
-      "body": "Adolygwch eich ffigurau Ffurflen TAW.",
-      "action": "Gwiriwch eich cofnodion gwerthu ar gyfer y cyfnod.",
+      "itemNumber": "0",
+      "title": "Nid yw HMRC Assist wedi dychwelyd unrhyw negeseuon.",
+      "body": "Nid yw hwn yn wiriad cyflawn o''ch datganiad nac yn gadarnhad bod eich datganiad yn gywir. Nid yw eich datganiad wedi''i gyflwyno ar y cam hwn.",
+      "action": "Ystyriwch unrhyw wiriadau pellach cyn cwblhau eich datganiad.",
       "links": [
         {
           "title": "Canllawiau TAW",
           "url": "https://www.gov.uk/ffurflenni-taw"
         }
       ],
-      "path": "vatDueSales"
+      "path": ""
     }
   ]
 }
