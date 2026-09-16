@@ -1,0 +1,6 @@
+{
+  "output": {
+    "responseCode": 401,
+    "responseMessage": "Acknowledgement validation failed"
+  }
+}
