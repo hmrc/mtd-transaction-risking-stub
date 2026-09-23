@@ -9,5 +9,5 @@ POST        /internal/validate/:vrn                 uk.gov.hmrc.mtdtransactionri
 POST        /check/insights                         uk.gov.hmrc.mtdtransactionriskingstub.controllers.InsightsController.checkInsights()
 POST        /SASLogon/oauth/token                   uk.gov.hmrc.mtdtransactionriskingstub.controllers.SasAuthController.token()
 POST        /rds/assessments/generate               uk.gov.hmrc.mtdtransactionriskingstub.controllers.RdsController.generateReport()
-POST        /rds/acknowledge                        uk.gov.hmrc.mtdtransactionriskingstub.controllers.RdsAcknowledgeStubController.acknowledge()
+POST        /rds/acknowledge                        uk.gov.hmrc.mtdtransactionriskingstub.controllers.RdsController.acknowledge()
 POST        /rsd/receive-and-store                  uk.gov.hmrc.mtdtransactionriskingstub.controllers.InteractionController.store()

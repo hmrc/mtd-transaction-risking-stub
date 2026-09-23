@@ -18,7 +18,8 @@ package uk.gov.hmrc.mtdtransactionriskingstub.controllers
 
 import play.api.Logging
 import play.api.libs.json.{JsValue, Json}
-import play.api.mvc.{Action, ControllerComponents}
+import play.api.mvc.{Action, AnyContent, ControllerComponents}
+import uk.gov.hmrc.mtdtransactionriskingstub.models.RdsAcknowledgeRequestWrapper
 import uk.gov.hmrc.mtdtransactionriskingstub.services.RdsReportService
 import uk.gov.hmrc.mtdtransactionriskingstub.utils.StubPeriodKeys
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
@@ -61,4 +62,35 @@ class RdsController @Inject()(cc: ControllerComponents) extends BackendControlle
         Created(RdsReportService.reportFor(feedbackId, rdsCorrelationId))
 
     Future.successful(result)
+  }
+
+  def acknowledge(): Action[AnyContent] = Action.async { request =>
+    val invalidRequest = BadRequest(Json.obj(
+      "output" -> Json.obj(
+        "responseCode"    -> 401,
+        "responseMessage" -> "Acknowledgement validation failed"
+      )
+    ))
+
+    request.body.asJson
+      .toRight(invalidRequest)
+      .flatMap(_.validate[RdsAcknowledgeRequestWrapper].asEither.left.map(_ => invalidRequest))
+      .fold(
+        Future.successful,
+        parsed =>
+          val vrn        = parsed.vrn.getOrElse("")
+          val feedbackId = parsed.feedbackId.getOrElse("")
+
+          Future.successful(
+            Ok(Json.obj(
+              "output" -> Json.obj(
+                "vrn"             -> vrn,
+                "feedbackId"      -> feedbackId,
+                "createdDttm"     -> "2026-06-09T10:30:00Z",
+                "responseCode"    -> 202,
+                "responseMessage" -> "Acknowledgement accepted"
+              )
+            )).withHeaders("X-CorrelationId" -> UUID.randomUUID().toString)
+          )
+      )
   }

@@ -24,7 +24,7 @@ import org.scalatest.wordspec.AnyWordSpec
 import play.api.http.Status.*
 import play.api.libs.json.{JsValue, Json}
 import play.api.test.FakeRequest
-import play.api.test.Helpers.{contentAsJson, contentAsString, defaultAwaitTimeout, status, stubControllerComponents}
+import play.api.test.Helpers.{contentAsJson, contentAsString, defaultAwaitTimeout, header, status, stubControllerComponents}
 import uk.gov.hmrc.mtdtransactionriskingstub.utils.StubPeriodKeys
 
 class RdsControllerSpec extends AnyWordSpec, Matchers:
@@ -41,6 +41,15 @@ class RdsControllerSpec extends AnyWordSpec, Matchers:
     "endDate"      -> "2026-03-31",
     "customerType" -> "T",
     "vatDueSales"  -> 100.00
+  )
+
+  private def acknowledgeRequest(vrn: String, feedbackId: String) = Json.obj(
+    "inputs" -> Json.arr(
+      Json.obj("name" -> "correlationId", "value" -> "9EEB55EF4FA9A24954BC982DF1D59B3D02BC097F6B1377B8B335C7583D92B959"),
+      Json.obj("name" -> "feedbackId", "value" -> feedbackId),
+      Json.obj("name" -> "vrn", "value" -> vrn),
+      Json.obj("name" -> "presentedDateTime", "value" -> "2026-02-15T09:35:15.094Z")
+    )
   )
 
   private def requestWith(periodKey: String) =
@@ -109,3 +118,28 @@ class RdsControllerSpec extends AnyWordSpec, Matchers:
       val second = outputsOf(contentAsJson(controller.generateReport()(requestWith("AB12"))))
 
       first should not be second
+
+  "acknowledge" should:
+
+    "return 200" in:
+      val result = controller.acknowledge()(
+        FakeRequest("POST", "/rds/acknowledge")
+          .withJsonBody(acknowledgeRequest("123456789", "feedback-id"))
+      )
+
+      status(result) shouldBe OK
+      (contentAsJson(result) \ "output" \ "vrn").as[String] shouldBe "123456789"
+      (contentAsJson(result) \ "output" \ "feedbackId").as[String] shouldBe "feedback-id"
+      (contentAsJson(result) \ "output" \ "responseCode").as[Int] shouldBe 202
+      (contentAsJson(result) \ "output" \ "createdDttm").as[String] shouldBe "2026-06-09T10:30:00Z"
+      (contentAsJson(result) \ "output" \ "responseMessage").as[String] shouldBe "Acknowledgement accepted"
+      header("X-CorrelationId", result) shouldBe defined
+
+    "return 400 without body" in:
+      val result = controller.acknowledge()(
+        FakeRequest("POST", "/rds/acknowledge").withHeaders("Content-Type" -> "application/json")
+      )
+
+      status(result) shouldBe BAD_REQUEST
+      (contentAsJson(result) \ "output" \ "responseMessage").as[String] shouldBe "Acknowledgement validation failed"
+      (contentAsJson(result) \ "output" \ "responseCode").as[Int] shouldBe 401
