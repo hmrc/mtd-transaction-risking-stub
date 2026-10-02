@@ -94,6 +94,62 @@ Response JSON files are stored in `conf/resources/response/feedback/`. Each file
 freshly generated UUIDs on each request.
 
 
+#### `POST /nrs-orchestrator/submission`
+
+Simulates the NRS Orchestrator submission endpoint used by mtd-transaction-risking.
+
+It validates:
+- `X-API-Key: nrs-test-api-key`
+- `X-Correlation-Id` is a UUID
+- `Content-Type: application/json`
+- `businessId` is `vata`
+- a supported TxR NRS event is supplied
+- the payload is Base64-encoded JSON
+- the payload SHA-256 checksum is valid
+
+Supported events:
+```text
+vata-request-feedback
+vata-report-generated
+vata-report-acknowledged
+```
+
+A successful request returns HTTP 202:
+```json
+{
+"nrSubmissionId": "a generated UUID"
+}
+```
+
+| `Gov-Test-Scenario` value | HTTP status | Description |
+|---|---|---|
+| absent or `DEFAULT | 202 | NRS accepts the submission |
+| `NRS_BAD_REQUEST` | 400 | NRS rejects the request |
+| `NRS_UNAUTHORIZED` | 401 | NRS rejects the API key |
+| `NRS_TOO_MANY_REQUESTS` | 429 | NRS rate-limits the request |
+| `NRS_INTERNAL_SERVER_ERROR` | 500 | NRS internal error |
+| `NRS_SERVICE_UNAVAILABLE` | 503 | NRS unavailable |
+| any other value | 400 | `TEST_ONLY_UNMATCHED_STUB_ERROR` |
+
+
+#### `GET /nrs-orchestrator/submissions`
+Returns redacted NRS submission summaries captured by the stub.
+
+Required query parameters:
+```text
+vrn
+reportId
+```
+
+Example:
+
+```text
+GET /nrs-orchestrator/submissions?vrn=123456789&reportId=<report-id>
+```
+
+The response includes the event, search keys, correlation ID, and payload validation results. It does not return the payload, authorisation token, or identity data.
+
+
 ### Running the test suite
 
 ```bash
