@@ -11,3 +11,5 @@ POST        /SASLogon/oauth/token                   uk.gov.hmrc.mtdtransactionri
 POST        /rds/assessments/generate               uk.gov.hmrc.mtdtransactionriskingstub.controllers.RdsController.generateReport()
 POST        /rds/acknowledge                        uk.gov.hmrc.mtdtransactionriskingstub.controllers.RdsController.acknowledge()
 POST        /rsd/receive-and-store                  uk.gov.hmrc.mtdtransactionriskingstub.controllers.InteractionController.store()
+POST        /nrs-orchestrator/submission            uk.gov.hmrc.mtdtransactionriskingstub.controllers.NrsStubController.submit()
+GET         /nrs-orchestrator/submissions           uk.gov.hmrc.mtdtransactionriskingstub.controllers.NrsStubController.submissions(vrn: String, reportId: String)
