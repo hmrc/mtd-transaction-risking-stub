@@ -23,41 +23,24 @@ import uk.gov.hmrc.mtdtransactionriskingstub.services.NrsStubService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.Future
 
 @Singleton
-class NrsStubController @Inject()(
-                                   cc: ControllerComponents,
-                                   nrsStubService: NrsStubService
-                                 ) extends BackendController(cc), Logging:
+class NrsStubController @Inject()(cc: ControllerComponents, nrsStubService: NrsStubService) extends BackendController(cc), Logging:
 
-  def submit(): Action[JsValue] = Action.async(parse.json) { implicit request =>
+  def submit(): Action[JsValue] = Action(parse.json) { request =>
+    val correlationId = request.headers.get("X-Correlation-Id")
+
     val response = nrsStubService.submit(
       apiKey = request.headers.get("X-API-Key"),
-      correlationId = request.headers.get("X-Correlation-Id"),
-      contentType = request.contentType,
+      correlationId = correlationId,
       body = request.body
     )
 
-    logger.info(
-      s"[NrsStubController][submit] " +
-        s"status=${response.status} " +
-        s"scenario=${response.scenario}"
-    )
+    logger.info(s"${correlationId.getOrElse("no-correlation-id")}::[NrsStubController][submit] status=${response.status}")
 
-    Future.successful(
-      Status(response.status)(response.body)
-        .as("application/json")
-    )
+    Status(response.status)(response.body)
   }
 
   def submissions(vrn: String, reportId: String): Action[AnyContent] = Action {
-    val submissions = nrsStubService.submissionsFor(vrn, reportId)
-
-    Ok(
-      Json.obj(
-        "submissions" -> submissions.map(_.asJson)
-      )
-    )
+    Ok(Json.obj("submissions" -> nrsStubService.submissionsFor(vrn, reportId)))
   }
-  
