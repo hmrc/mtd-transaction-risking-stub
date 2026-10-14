@@ -25,7 +25,6 @@ import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.Future
 
-// Stubs the interactions datastore which reached once RDS succeeds
 @Singleton
 class InteractionController @Inject() (cc: ControllerComponents) extends BackendController(cc), Logging:
 
