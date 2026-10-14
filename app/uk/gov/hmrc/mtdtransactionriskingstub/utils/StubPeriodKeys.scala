@@ -33,3 +33,4 @@ object StubPeriodKeys:
   val rsdBadRequest = "RS01"          // datastore rejects with a bad request (400)
   val rsdServerError = "RS02"         // datastore fails internally (500)
   val rsdServiceUnavailable = "RS03"  // datastore unavailable (503)
+  val rsdTooManyRequests = "RS04"
