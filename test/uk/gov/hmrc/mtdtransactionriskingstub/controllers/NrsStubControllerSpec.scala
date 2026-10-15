@@ -32,32 +32,21 @@ import java.util.Base64
 
 class NrsStubControllerSpec extends AnyWordSpec, Matchers:
 
-  private given system: ActorSystem =
-    ActorSystem("NrsStubControllerSpec")
-
-  private given materializer: Materializer =
-    Materializer(system)
-
   private val nrsStubService = new NrsStubService
-
   private val controller =
     new NrsStubController(
       stubControllerComponents(),
       nrsStubService
     )
-
   private val vrn = "123456789"
   private val reportId = "a1e8057e-fbbc-47a8-a8b4-78d9f015c253"
-
   private val payloadJson =
     Json.obj(
       "periodKey" -> "18AD",
       "vatDueSales" -> 105.50
     )
-
   private val payloadBytes =
     Json.stringify(payloadJson).getBytes(UTF_8)
-
   private val validBody: JsObject =
     Json.obj(
       "payload" -> Base64.getEncoder.encodeToString(payloadBytes),
@@ -79,6 +68,12 @@ class NrsStubControllerSpec extends AnyWordSpec, Matchers:
       )
     )
 
+  private given materializer: Materializer =
+    Materializer(system)
+
+  private given system: ActorSystem =
+    ActorSystem("NrsStubControllerSpec")
+
   private def request(
                        body: JsValue = validBody,
                        apiKey: String = "nrs-test-api-key",
@@ -99,15 +94,15 @@ class NrsStubControllerSpec extends AnyWordSpec, Matchers:
       .map("%02x".format(_))
       .mkString
 
-  "NrsStubController.submit" should:
+  "NrsStubController.submit" should :
 
-    "return 202 and an NRS submission ID for a valid default submission" in:
+    "return 202 and an NRS submission ID for a valid default submission" in :
       val result = controller.submit()(request())
 
       status(result) shouldBe ACCEPTED
       (contentAsJson(result) \ "nrSubmissionId").as[String] should not be empty
 
-    "return 401 when X-API-Key is invalid" in:
+    "return 401 when X-API-Key is invalid" in :
       val result = controller.submit()(
         request(apiKey = "invalid-key")
       )
@@ -115,7 +110,7 @@ class NrsStubControllerSpec extends AnyWordSpec, Matchers:
       status(result) shouldBe UNAUTHORIZED
       (contentAsJson(result) \ "code").as[String] shouldBe "NRS_INVALID_API_KEY"
 
-    "return 400 when X-Correlation-Id is not a UUID" in:
+    "return 400 when X-Correlation-Id is not a UUID" in :
       val result = controller.submit()(
         request(correlationId = "not-a-uuid")
       )
@@ -123,7 +118,7 @@ class NrsStubControllerSpec extends AnyWordSpec, Matchers:
       status(result) shouldBe BAD_REQUEST
       (contentAsJson(result) \ "code").as[String] shouldBe "NRS_INVALID_CORRELATION_ID"
 
-    "return 400 for an invalid NRS submission body" in:
+    "return 400 for an invalid NRS submission body" in :
       val result = controller.submit()(
         request(body = Json.obj("payload" -> "payload-only"))
       )
@@ -131,7 +126,7 @@ class NrsStubControllerSpec extends AnyWordSpec, Matchers:
       status(result) shouldBe BAD_REQUEST
       (contentAsJson(result) \ "code").as[String] shouldBe "NRS_INVALID_SUBMISSION"
 
-    "return 400 when the business ID is not vata" in:
+    "return 400 when the business ID is not vata" in :
       val body =
         validBody.deepMerge(
           Json.obj(
@@ -146,7 +141,7 @@ class NrsStubControllerSpec extends AnyWordSpec, Matchers:
       status(result) shouldBe BAD_REQUEST
       (contentAsJson(result) \ "code").as[String] shouldBe "NRS_INVALID_BUSINESS_ID"
 
-    "return 400 for an unsupported notable event" in:
+    "return 400 for an unsupported notable event" in :
       val body =
         validBody.deepMerge(
           Json.obj(
@@ -161,7 +156,7 @@ class NrsStubControllerSpec extends AnyWordSpec, Matchers:
       status(result) shouldBe BAD_REQUEST
       (contentAsJson(result) \ "code").as[String] shouldBe "NRS_UNSUPPORTED_NOTABLE_EVENT"
 
-    "return 400 when the payload checksum does not match" in:
+    "return 400 when the payload checksum does not match" in :
       val body =
         validBody.deepMerge(
           Json.obj(
@@ -176,7 +171,7 @@ class NrsStubControllerSpec extends AnyWordSpec, Matchers:
       status(result) shouldBe BAD_REQUEST
       (contentAsJson(result) \ "code").as[String] shouldBe "NRS_INVALID_PAYLOAD_CHECKSUM"
 
-    "return 400 when the payload is not Base64-encoded JSON" in:
+    "return 400 when the payload is not Base64-encoded JSON" in :
       val body =
         validBody.deepMerge(
           Json.obj(
@@ -189,63 +184,33 @@ class NrsStubControllerSpec extends AnyWordSpec, Matchers:
       status(result) shouldBe BAD_REQUEST
       (contentAsJson(result) \ "code").as[String] shouldBe "NRS_INVALID_PAYLOAD"
 
-    "return 400 for the bad-request scenario" in:
-      val body =
-        withScenario("NRS_BAD_REQUEST")
+    "return 202 for each notable event mtd-transaction-risking sends" in :
+      Seq("vata-request-feedback", "vata-generate-report", "vata-acknowledge-report").foreach { event =>
+        val body = validBody.deepMerge(Json.obj("metadata" -> Json.obj("notableEvent" -> event)))
+
+        withClue(s"$event: ") {
+          status(controller.submit()(request(body = body))) shouldBe ACCEPTED
+        }
+      }
+
+    "accept a submission whose headerData carries a vendor Gov-Test-Scenario" in :
+      val body = validBody.deepMerge(
+        Json.obj("metadata" -> Json.obj("headerData" -> Json.obj("Gov-Test-Scenario" -> "MULTIPLE_FEEDBACK")))
+      )
+
+      status(controller.submit()(request(body = body))) shouldBe ACCEPTED
+
+    "return 400 when the payload content type is not application/json" in :
+      val body = validBody.deepMerge(Json.obj("metadata" -> Json.obj("payloadContentType" -> "text/plain")))
 
       val result = controller.submit()(request(body = body))
 
       status(result) shouldBe BAD_REQUEST
-      (contentAsJson(result) \ "code").as[String] shouldBe "NRS_BAD_REQUEST"
+      (contentAsJson(result) \ "code").as[String] shouldBe "NRS_INVALID_PAYLOAD_CONTENT_TYPE"
 
-    "return 401 for the NRS unauthorised scenario" in:
-      val body =
-        withScenario("NRS_UNAUTHORIZED")
+  "NrsStubController.submissions" should :
 
-      val result = controller.submit()(request(body = body))
-
-      status(result) shouldBe UNAUTHORIZED
-      (contentAsJson(result) \ "code").as[String] shouldBe "NRS_UNAUTHORIZED"
-
-    "return 429 for the NRS rate-limit scenario" in:
-      val body =
-        withScenario("NRS_TOO_MANY_REQUESTS")
-
-      val result = controller.submit()(request(body = body))
-
-      status(result) shouldBe TOO_MANY_REQUESTS
-      (contentAsJson(result) \ "code").as[String] shouldBe "NRS_TOO_MANY_REQUESTS"
-
-    "return 503 for the unavailable scenario" in:
-      val body =
-        withScenario("NRS_SERVICE_UNAVAILABLE")
-
-      val result = controller.submit()(request(body = body))
-
-      status(result) shouldBe SERVICE_UNAVAILABLE
-      (contentAsJson(result) \ "code").as[String] shouldBe "NRS_SERVICE_UNAVAILABLE"
-
-    "return 500 for the internal-error scenario" in:
-      val body =
-        withScenario("NRS_INTERNAL_SERVER_ERROR")
-
-      val result = controller.submit()(request(body = body))
-
-      status(result) shouldBe INTERNAL_SERVER_ERROR
-      (contentAsJson(result) \ "code").as[String] shouldBe "NRS_INTERNAL_SERVER_ERROR"
-
-    "return 400 for an unknown scenario" in:
-      val body =
-        withScenario("UNKNOWN_NRS_SCENARIO")
-
-      val result = controller.submit()(request(body = body))
-
-      status(result) shouldBe BAD_REQUEST
-      (contentAsJson(result) \ "code").as[String] shouldBe "TEST_ONLY_UNMATCHED_STUB_ERROR"
-
-  "NrsStubController.submissions" should:
-
-    "return a redacted summary of a captured submission for the supplied VRN and report ID" in:
+    "return a redacted summary of a captured submission for the supplied VRN and report ID" in :
       status(controller.submit()(request())) shouldBe ACCEPTED
 
       val result = controller.submissions(vrn, reportId)(
@@ -266,20 +231,8 @@ class NrsStubControllerSpec extends AnyWordSpec, Matchers:
       (submission \ "vrn").as[String] shouldBe vrn
       (submission \ "reportId").as[String] shouldBe reportId
       (submission \ "payloadContentType").as[String] shouldBe "application/json"
-      (submission \ "payloadJsonValid").as[Boolean] shouldBe true
-      (submission \ "payloadChecksumValid").as[Boolean] shouldBe true
+      (submission \ "receivedAt").toOption shouldBe defined
 
       (submission \ "userAuthToken").toOption shouldBe None
       (submission \ "identityData").toOption shouldBe None
       (submission \ "payload").toOption shouldBe None
-
-  private def withScenario(scenario: String): JsObject =
-    validBody.deepMerge(
-      Json.obj(
-        "metadata" -> Json.obj(
-          "headerData" -> Json.obj(
-            "Gov-Test-Scenario" -> scenario
-          )
-        )
-      )
-    )
