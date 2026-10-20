@@ -1,5 +1,5 @@
 {
-  "reportId": "f2fb30e5-4ab6-4a29-b3c1-c7264259ff1c",
+  "reportId": "ReportId",
   "englishFeedback": [
     {
       "itemNumber": "0",
@@ -7,24 +7,18 @@
       "body": "This is not a complete check of your return or confirmation that your return is accurate. Your return has not been submitted at this stage.",
       "action": "Consider any further checks before finalising your return.",
       "links": [
-        {
-          "title": "VAT guidance",
-          "url": "https://www.gov.uk/vat-returns"
-        }
+        { "title": "Go to GOV.UK for more information on HMRC Assist", "url": "https://www.gov.uk" }
       ]
     }
   ],
   "welshFeedback": [
     {
       "itemNumber": "0",
-      "title": "Nid yw HMRC Assist wedi dychwelyd unrhyw negeseuon.",
-      "body": "Nid yw hwn yn wiriad cyflawn o''ch datganiad nac yn gadarnhad bod eich datganiad yn gywir. Nid yw eich datganiad wedi''i gyflwyno ar y cam hwn.",
+      "title": "Adborth CThEF: Nid yw HMRC Assist wedi dychwelyd unrhyw negeseuon.",
+      "body": "Nid yw hwn yn wiriad cyflawn o'ch datganiad nac yn gadarnhad bod eich datganiad yn gywir. Nid yw eich datganiad wedi'i gyflwyno ar y cam hwn.",
       "action": "Ystyriwch unrhyw wiriadau pellach cyn cwblhau eich datganiad.",
       "links": [
-        {
-          "title": "Canllawiau TAW",
-          "url": "https://www.gov.uk/ffurflenni-taw"
-        }
+        { "title": "Ewch i GOV.UK am ragor o wybodaeth am HMRC Assist", "url": "https://www.gov.uk" }
       ]
     }
   ]
