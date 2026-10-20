@@ -39,15 +39,6 @@ class StubResource extends Logging:
         .replace("CorrelationId", correlationId)
     )
 
-  def loadRdsAcknowledgeResponse(fileName: String, vrn: String, feedbackId: String): JsValue =
-    val templateContent = load("rds/acknowledge", fileName)
-    Json.parse(
-      templateContent
-        .replace("Vrn", vrn)
-        .replace("FeedbackId", feedbackId)
-        .replace("CreatedDttm", java.time.Instant.now().toString)
-    )
-
   def loadErrorResponse(folder: String, fileName: String): JsValue =
     Json.parse(load(folder, fileName))
 
