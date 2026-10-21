@@ -22,22 +22,24 @@ import uk.gov.hmrc.mtdtransactionriskingstub.utils.StubResource
 
 import javax.inject.{Inject, Singleton}
 
+
+
 @Singleton
 class AcknowledgeStubService @Inject()(stubResource: StubResource):
 
   def acknowledgeFor(scenario: String): Option[StubResponse] =
     scenario match
-      case "DEFAULT" => Some(success)
-      case "INVALID_VRN" => Some(error(BAD_REQUEST, "error-vrn-invalid.json"))
-      case "INVALID_REPORTID" => Some(error(BAD_REQUEST, "error-invalid-report-id.json"))
-      case "INVALID_CORRELATIONID" => Some(error(BAD_REQUEST, "error-invalid-correlation-id.json"))
-      case "INVALID_DATETIME" => Some(error(BAD_REQUEST, "error-invalid-datetime.json"))
-      case "CORRELATION_ID" => Some(error(BAD_REQUEST, "error-acknowledgement-validation-failed.json"))
-      case "INVALID_CREDENTIALS" => Some(error(UNAUTHORIZED, "error-invalid-credentials.json"))
-      case "NOT_AUTHORISED" => Some(error(FORBIDDEN, "error-client-or-agent-not-authorised.json"))
-      case "NOT_FOUND" => Some(error(NOT_FOUND, "error-matching-resource-not-found.json"))
-      case _ => None
-
+      case "DEFAULT"             => Some(success)
+      case "INVALID_VRN"         => Some(error(BAD_REQUEST,   "error-vrn-invalid.json"))
+      case "INVALID_REPORTID"    => Some(error(BAD_REQUEST,   "error-invalid-report-id.json"))
+      case "INVALID_DATETIME"    => Some(error(BAD_REQUEST,   "error-invalid-datetime.json"))
+      case "INVALID_CREDENTIALS" => Some(error(UNAUTHORIZED,  "error-invalid-credentials.json"))
+      case "NOT_AUTHORISED"      => Some(error(FORBIDDEN,     "error-client-or-agent-not-authorised.json"))
+      case "CORRELATION_ID"      => Some(error(FORBIDDEN,     "error-correlation-id.json"))
+      case "NOT_FOUND"           => Some(error(NOT_FOUND,     "error-matching-resource-not-found.json"))
+      case _                     => None
+  
+  
   private def success: StubResponse =
     SuccessResponse(Json.obj())
 

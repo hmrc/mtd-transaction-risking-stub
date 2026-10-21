@@ -33,28 +33,45 @@ class AcknowledgeStubServiceSpec extends AnyWordSpec, Matchers, MockitoSugar:
   private def errorJson(code: String): JsValue =
     Json.obj("code" -> code, "message" -> s"$code message")
 
-  // Each scenario loads the named file and returns it with the given status
-  private def expectError(scenario: String, status: Int, fileName: String, code: String): Unit =
-    s"return a $status $code error for $scenario" in:
-      when(stubResource.loadErrorResponse(eqTo("acknowledge"), eqTo(fileName))).thenReturn(errorJson(code))
-      service.acknowledgeFor(scenario) shouldBe Some(ErrorResponse(status, errorJson(code)))
-
   "acknowledgeFor" should:
 
     "return a SuccessResponse for the DEFAULT scenario" in:
       service.acknowledgeFor("DEFAULT") shouldBe Some(SuccessResponse(Json.obj()))
 
-    expectError("INVALID_VRN", BAD_REQUEST, "error-vrn-invalid.json", "VRN_INVALID")
-    expectError("INVALID_REPORTID", BAD_REQUEST, "error-invalid-report-id.json", "REPORT_ID_INVALID")
-    expectError("INVALID_CORRELATIONID", BAD_REQUEST, "error-invalid-correlation-id.json", "CORRELATION_ID_INVALID")
-    expectError("INVALID_DATETIME", BAD_REQUEST, "error-invalid-datetime.json", "PRESENTED_DATE_TIME_INVALID")
+    "return a 400 FORMAT_VRN error for INVALID_VRN" in:
+      when(stubResource.loadErrorResponse(eqTo("acknowledge"), eqTo("error-vrn-invalid.json")))
+        .thenReturn(errorJson("VRN_INVALID"))
+      service.acknowledgeFor("INVALID_VRN") shouldBe Some(ErrorResponse(BAD_REQUEST, errorJson("VRN_INVALID")))
 
-    // The VRN, report ID and correlation ID don't match a report
-    expectError("CORRELATION_ID", BAD_REQUEST, "error-acknowledgement-validation-failed.json", "ACKNOWLEDGEMENT_VALIDATION_FAILED")
+    "return a 400 FORMAT_REPORT_ID error for INVALID_REPORTID" in:
+      when(stubResource.loadErrorResponse(eqTo("acknowledge"), eqTo("error-invalid-report-id.json")))
+        .thenReturn(errorJson("FORMAT_REPORT_ID"))
+      service.acknowledgeFor("INVALID_REPORTID") shouldBe Some(ErrorResponse(BAD_REQUEST, errorJson("FORMAT_REPORT_ID")))
 
-    expectError("INVALID_CREDENTIALS", UNAUTHORIZED, "error-invalid-credentials.json", "INVALID_CREDENTIALS")
-    expectError("NOT_AUTHORISED", FORBIDDEN, "error-client-or-agent-not-authorised.json", "CLIENT_OR_AGENT_NOT_AUTHORISED")
-    expectError("NOT_FOUND", NOT_FOUND, "error-matching-resource-not-found.json", "MATCHING_RESOURCE_NOT_FOUND")
+    "return a 400 FORMAT_DATETIME error for INVALID_DATETIME" in:
+      when(stubResource.loadErrorResponse(eqTo("acknowledge"), eqTo("error-invalid-datetime.json")))
+        .thenReturn(errorJson("FORMAT_DATETIME"))
+      service.acknowledgeFor("INVALID_DATETIME") shouldBe Some(ErrorResponse(BAD_REQUEST, errorJson("FORMAT_DATETIME")))
+
+    "return a 401 INVALID_CREDENTIALS error for INVALID_CREDENTIALS" in:
+      when(stubResource.loadErrorResponse(eqTo("acknowledge"), eqTo("error-invalid-credentials.json")))
+        .thenReturn(errorJson("INVALID_CREDENTIALS"))
+      service.acknowledgeFor("INVALID_CREDENTIALS") shouldBe Some(ErrorResponse(UNAUTHORIZED, errorJson("INVALID_CREDENTIALS")))
+
+    "return a 403 CLIENT_OR_AGENT_NOT_AUTHORISED error for NOT_AUTHORISED" in:
+      when(stubResource.loadErrorResponse(eqTo("acknowledge"), eqTo("error-client-or-agent-not-authorised.json")))
+        .thenReturn(errorJson("CLIENT_OR_AGENT_NOT_AUTHORISED"))
+      service.acknowledgeFor("NOT_AUTHORISED") shouldBe Some(ErrorResponse(FORBIDDEN, errorJson("CLIENT_OR_AGENT_NOT_AUTHORISED")))
+
+    "return a 403 CORRELATION_ID error for CORRELATION_ID" in:
+      when(stubResource.loadErrorResponse(eqTo("acknowledge"), eqTo("error-correlation-id.json")))
+        .thenReturn(errorJson("CORRELATION_ID"))
+      service.acknowledgeFor("CORRELATION_ID") shouldBe Some(ErrorResponse(FORBIDDEN, errorJson("CORRELATION_ID")))
+
+    "return a 404 MATCHING_RESOURCE_NOT_FOUND error for NOT_FOUND" in:
+      when(stubResource.loadErrorResponse(eqTo("acknowledge"), eqTo("error-matching-resource-not-found.json")))
+        .thenReturn(errorJson("MATCHING_RESOURCE_NOT_FOUND"))
+      service.acknowledgeFor("NOT_FOUND") shouldBe Some(ErrorResponse(NOT_FOUND, errorJson("MATCHING_RESOURCE_NOT_FOUND")))
 
     "return None for an unrecognised scenario" in:
       service.acknowledgeFor("SOMETHING_ELSE") shouldBe None

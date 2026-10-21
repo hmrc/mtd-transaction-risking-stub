@@ -48,8 +48,8 @@ class FeedbackStubController @Inject()(
           .withHeaders("X-CorrelationId" -> UUID.randomUUID().toString)
       case None =>
         BadRequest(Json.obj(
-          "code"    -> "TEST_ONLY_UNMATCHED_STUB_ERROR",
-          "message" -> s"No stub data matched Gov-Test-Scenario: $scenario. This is a test error only."
+          "code" -> "TEST_ONLY_UNMATCHED_STUB_ERROR",
+          "reason" -> s"No stub data matched Gov-Test-Scenario: $scenario. This is a test error only."
         ))
 
     Future.successful(response)
