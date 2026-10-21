@@ -26,11 +26,14 @@
   "welshFeedback": [
     {
       "itemNumber": "1",
-      "title": "Adborth CThEF: Mae'r TAW sy'n ddyledus ar werthiannau'n ymddangos yn isel",
+      "title": "Mae'r TAW sy'n ddyledus ar werthiannau'n ymddangos yn isel",
       "body": "Mae'r ffigwr TAW sy'n ddyledus ar werthiannau'n ymddangos yn is na'r disgwyl.",
       "action": "Adolygwch flwch 1 a blwch 6 o'ch ffurflen TAW.",
       "links": [
-        { "title": "Hysbysiad TAW 700", "url": "https://www.gov.uk/guidance/vat-notice-700-the-vat-guide" }
+        {
+          "title": "Hysbysiad TAW 700",
+          "url": "https://www.gov.uk/guidance/vat-notice-700-the-vat-guide"
+        }
       ],
       "path": "vatDueSales"
     },
@@ -40,7 +43,10 @@
       "body": "Mae cyfanswm y pryniannau'n ymddangos yn uwch na'r disgwyl.",
       "action": "Adolygwch flwch 7 o'ch ffurflen TAW.",
       "links": [
-        { "title": "Hysbysiad TAW 700", "url": "https://www.gov.uk/guidance/vat-notice-700-the-vat-guide" }
+        {
+          "title": "Hysbysiad TAW 700",
+          "url": "https://www.gov.uk/guidance/vat-notice-700-the-vat-guide"
+        }
       ],
       "path": "totalValuePurchasesExVAT"
     }
