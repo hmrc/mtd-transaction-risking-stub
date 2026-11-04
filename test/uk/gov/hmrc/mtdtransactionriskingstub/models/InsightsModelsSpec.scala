@@ -91,3 +91,36 @@ class InsightsModelsSpec extends AnyWordSpec, Matchers:
 
       Json.toJson(model) shouldBe json
       json.as[InsightsStubResponse] shouldBe model
+
+
+  "Model formats" should :
+    "reject missing required fields" in :
+      val json = Json.obj()
+
+      json.validate[InsightsStubRequest].isError shouldBe true
+      json.validate[RiskData].isError shouldBe true
+      json.validate[StrategicRisk].isError shouldBe true
+      json.validate[Insights].isError shouldBe true
+      json.validate[InsightsStubResponse].isError shouldBe true
+
+    "reject incorrectly typed fields" in :
+      Json.obj(
+        "vatRegistrationNumber" -> 123456789
+      ).validate[InsightsStubRequest].isError shouldBe true
+
+      Json.obj(
+        "hops" -> "invalid",
+        "avgHops" -> "invalid"
+      ).validate[RiskData].isError shouldBe true
+
+      Json.obj(
+        "riskCorrelationId" -> 123,
+        "riskScore" -> "invalid",
+        "reasons" -> "invalid",
+        "riskData" -> "invalid"
+      ).validate[StrategicRisk].isError shouldBe true
+
+      Json.obj(
+        "strategicRisk" -> "invalid"
+      ).validate[Insights].isError shouldBe true
+
