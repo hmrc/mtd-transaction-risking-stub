@@ -30,6 +30,14 @@ class RdsAcknowledgeModelsSpec extends AnyWordSpec, Matchers:
       Json.toJson(model) shouldBe json
       json.as[RdsAcknowledgeInput] shouldBe model
 
+    "reject invalid inputs" in :
+      val json = Json.parse("""{"name": "vrn"}""")
+
+      (json \ "value").validate[String].isError shouldBe true
+      (json \ "name").validate[String].isError shouldBe false
+      json.validate[RdsAcknowledgeInput].isError shouldBe true
+
+
   "RdsAcknowledgeRequestWrapper" should:
 
     "round-trip through JSON" in:
