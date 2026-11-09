@@ -16,23 +16,40 @@
 
 package uk.gov.hmrc.mtdtransactionriskingstub.services
 
+import play.api.http.Status.{BAD_REQUEST, FORBIDDEN, SERVICE_UNAVAILABLE}
 import uk.gov.hmrc.mtdtransactionriskingstub.models.StubObligation
 import uk.gov.hmrc.mtdtransactionriskingstub.utils.{StubPeriodKeys, ValidationStubError}
 
-// Resolves a period key to an open obligation
+final case class ObligationLookupError(status: Int, error: ValidationStubError)
+
+// Resolves a period key to an open obligation, or to the error vat-api returns for it
 object ObligationStubService:
 
-  def lookupByPeriodKey(periodKey: String): Either[ValidationStubError, StubObligation] =
+  def lookupByPeriodKey(periodKey: String): Either[ObligationLookupError, StubObligation] =
     periodKey match
-      case StubPeriodKeys.periodKeyNotFound => Left(periodKeyNotFoundError)
-      case StubPeriodKeys.taxPeriodNotEnded => Left(taxPeriodNotEndedError)
-      case _                                => Right(endedObligation(periodKey))
+      case StubPeriodKeys.periodKeyNotFound      => Left(ObligationLookupError(BAD_REQUEST, noOpenObligationError))
+      case StubPeriodKeys.taxPeriodNotEnded      => Left(ObligationLookupError(FORBIDDEN, taxPeriodNotEndedError))
+      case StubPeriodKeys.insolventTrader        => Left(ObligationLookupError(FORBIDDEN, insolventTraderError))
+      case StubPeriodKeys.obligationsUnavailable => Left(ObligationLookupError(SERVICE_UNAVAILABLE, serviceUnavailableError))
+      case _                                     => Right(endedObligation(periodKey))
 
   private def endedObligation(periodKey: String): StubObligation =
     StubObligation(periodKey, start = "2026-01-01", end = "2026-03-31", due = "2026-05-07")
 
-  private val taxPeriodNotEndedError =
-    ValidationStubError("TAX_PERIOD_NOT_ENDED", "Tax period not ended", None, selfWraps = false)
+  private val noOpenObligationError =
+    ValidationStubError("PERIOD_KEY_INVALID", "The supplied period key does not match an open obligation", None, selfWraps = false)
 
-  private val periodKeyNotFoundError =
-    ValidationStubError("PERIOD_KEY_NOT_FOUND", "Period key not found", None, selfWraps = false)
+  private val taxPeriodNotEndedError =
+    ValidationStubError(
+      "TAX_PERIOD_NOT_ENDED",
+      "The remote endpoint has indicated that the submission is for a tax period that has not ended",
+      None,
+      selfWraps = false
+    )
+
+  private val insolventTraderError =
+    ValidationStubError("RULE_INSOLVENT_TRADER", "The remote endpoint has indicated that the Trader is insolvent", None, selfWraps = false)
+
+  // vat-api's own 503 body, which TxR passes on unchanged
+  private val serviceUnavailableError =
+    ValidationStubError("SERVICE_UNAVAILABLE", "Internal server error", None, selfWraps = false)

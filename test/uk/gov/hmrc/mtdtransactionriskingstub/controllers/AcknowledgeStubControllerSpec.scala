@@ -26,7 +26,8 @@ import org.scalatestplus.mockito.MockitoSugar
 import play.api.http.Status.*
 import play.api.libs.json.Json
 import play.api.test.FakeRequest
-import play.api.test.Helpers.{stubControllerComponents, contentAsJson, defaultAwaitTimeout, header, status}
+import play.api.test.Helpers.{contentAsJson, defaultAwaitTimeout, header, status, stubControllerComponents}
+import uk.gov.hmrc.mtdtransactionriskingstub.controllers.externaltest.AcknowledgeStubController
 import uk.gov.hmrc.mtdtransactionriskingstub.services.{AcknowledgeStubService, ErrorResponse, SuccessResponse}
 
 class AcknowledgeStubControllerSpec extends AnyWordSpec, Matchers, MockitoSugar:

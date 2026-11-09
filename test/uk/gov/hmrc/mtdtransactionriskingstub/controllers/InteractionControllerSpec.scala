@@ -24,6 +24,7 @@ import play.api.http.Status.*
 import play.api.libs.json.{JsObject, JsValue, Json}
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{contentAsJson, contentType, defaultAwaitTimeout, status, stubControllerComponents}
+import uk.gov.hmrc.mtdtransactionriskingstub.controllers.downstreams.InteractionController
 import uk.gov.hmrc.mtdtransactionriskingstub.utils.StubPeriodKeys
 
 class InteractionControllerSpec extends AnyWordSpec, Matchers:

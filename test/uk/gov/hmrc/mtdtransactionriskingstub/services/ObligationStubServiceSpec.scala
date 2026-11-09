@@ -19,37 +19,60 @@ package uk.gov.hmrc.mtdtransactionriskingstub.services
 import org.scalatest.EitherValues
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
+import play.api.http.Status.{BAD_REQUEST, FORBIDDEN, SERVICE_UNAVAILABLE}
 import uk.gov.hmrc.mtdtransactionriskingstub.utils.StubPeriodKeys
 
 class ObligationStubServiceSpec extends AnyWordSpec, Matchers, EitherValues:
 
+  "lookupByPeriodKey" should:
 
-  "lookupByPeriodKey" should :
+    "return 400 PERIOD_KEY_INVALID when no open obligation matches" in:
+      val result = ObligationStubService.lookupByPeriodKey(StubPeriodKeys.periodKeyNotFound).left.value
 
-    "return PERIOD_KEY_NOT_FOUND for the reserved not-found key" in :
-      ObligationStubService.lookupByPeriodKey(StubPeriodKeys.periodKeyNotFound).left.value.code shouldBe "PERIOD_KEY_NOT_FOUND"
+      result.status shouldBe BAD_REQUEST
+      result.error.code shouldBe "PERIOD_KEY_INVALID"
+      result.error.message shouldBe "The supplied period key does not match an open obligation"
 
-    "return TAX_PERIOD_NOT_ENDED for the reserved not-ended key" in :
-      ObligationStubService.lookupByPeriodKey(StubPeriodKeys.taxPeriodNotEnded).left.value.code shouldBe "TAX_PERIOD_NOT_ENDED"
+    "return 403 TAX_PERIOD_NOT_ENDED when the period has not ended" in:
+      val result = ObligationStubService.lookupByPeriodKey(StubPeriodKeys.taxPeriodNotEnded).left.value
 
-    "return an ended obligation for any other key" in :
+      result.status shouldBe FORBIDDEN
+      result.error.code shouldBe "TAX_PERIOD_NOT_ENDED"
+
+    "return 403 RULE_INSOLVENT_TRADER for an insolvent trader" in:
+      val result = ObligationStubService.lookupByPeriodKey(StubPeriodKeys.insolventTrader).left.value
+
+      result.status shouldBe FORBIDDEN
+      result.error.code shouldBe "RULE_INSOLVENT_TRADER"
+
+    "return 503 SERVICE_UNAVAILABLE when the obligations lookup fails" in:
+      val result = ObligationStubService.lookupByPeriodKey(StubPeriodKeys.obligationsUnavailable).left.value
+
+      result.status shouldBe SERVICE_UNAVAILABLE
+      result.error.code shouldBe "SERVICE_UNAVAILABLE"
+
+    "return an ended obligation for any other key" in:
       val obligation = ObligationStubService.lookupByPeriodKey("AB12").value
 
       obligation.periodKey shouldBe "AB12"
       obligation.end shouldBe "2026-03-31"
 
-    "echo the requested period key back on the obligation" in :
+    "echo the requested period key back on the obligation" in:
       ObligationStubService.lookupByPeriodKey("XY45").value.periodKey shouldBe "XY45"
 
-    "return an ended obligation for the RDS trigger keys, so requests reach RDS" in :
-      val rdsKeys = Seq(
+    "return an ended obligation for the RDS and RSD scenario keys, so requests reach them" in:
+      val scenarioKeys = Seq(
         StubPeriodKeys.rdsBadRequest,
         StubPeriodKeys.rdsNotFound,
         StubPeriodKeys.rdsServiceUnavailable,
         StubPeriodKeys.rdsNoFeedback,
-        StubPeriodKeys.rdsMalformedReport
+        StubPeriodKeys.rdsMalformedReport,
+        StubPeriodKeys.rsdBadRequest,
+        StubPeriodKeys.rsdServerError,
+        StubPeriodKeys.rsdServiceUnavailable,
+        StubPeriodKeys.rsdTooManyRequests
       )
 
-      rdsKeys.foreach { key =>
+      scenarioKeys.foreach { key =>
         withClue(s"for period key $key: ")(ObligationStubService.lookupByPeriodKey(key).value.periodKey shouldBe key)
       }

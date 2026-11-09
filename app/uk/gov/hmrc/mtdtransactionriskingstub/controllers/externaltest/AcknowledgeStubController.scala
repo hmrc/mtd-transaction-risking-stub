@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.mtdtransactionriskingstub.controllers
+package uk.gov.hmrc.mtdtransactionriskingstub.controllers.externaltest
 
 import play.api.Logging
 import play.api.libs.json.Json
 import play.api.mvc.*
-import uk.gov.hmrc.mtdtransactionriskingstub.services.{ErrorResponse, AcknowledgeStubService, SuccessResponse}
+import uk.gov.hmrc.mtdtransactionriskingstub.services.{AcknowledgeStubService, ErrorResponse, SuccessResponse}
 import uk.gov.hmrc.mtdtransactionriskingstub.utils.GovTestScenario
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 

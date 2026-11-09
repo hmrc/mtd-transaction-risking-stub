@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.mtdtransactionriskingstub.controllers
+package uk.gov.hmrc.mtdtransactionriskingstub.controllers.externaltest
 
 import play.api.Logging
 import play.api.libs.json.Json

@@ -21,6 +21,7 @@ import org.scalatest.wordspec.AnyWordSpec
 import play.api.libs.json.JsArray
 import play.api.test.{FakeRequest, Helpers}
 import play.api.test.Helpers.*
+import uk.gov.hmrc.mtdtransactionriskingstub.controllers.externaltest.FeedbackStubController
 import uk.gov.hmrc.mtdtransactionriskingstub.utils.StubResource
 import uk.gov.hmrc.mtdtransactionriskingstub.services.FeedbackStubService
 
