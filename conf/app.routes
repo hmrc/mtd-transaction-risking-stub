@@ -1,15 +1,15 @@
 # microservice specific routes
 
 # stubbed gov-test-scenario paths
-POST        /feedback                               uk.gov.hmrc.mtdtransactionriskingstub.controllers.FeedbackStubController.requestFeedback()
-POST        /acknowledge                            uk.gov.hmrc.mtdtransactionriskingstub.controllers.AcknowledgeStubController.requestAcknowledge()
+POST        /feedback                               uk.gov.hmrc.mtdtransactionriskingstub.controllers.externaltest.FeedbackStubController.requestFeedback()
+POST        /acknowledge                            uk.gov.hmrc.mtdtransactionriskingstub.controllers.externaltest.AcknowledgeStubController.requestAcknowledge()
 
 # normal routes
-POST        /internal/validate/:vrn                 uk.gov.hmrc.mtdtransactionriskingstub.controllers.ValidateController.validateReturn(vrn: String)
-POST        /check/insights                         uk.gov.hmrc.mtdtransactionriskingstub.controllers.InsightsController.checkInsights()
-POST        /SASLogon/oauth/token                   uk.gov.hmrc.mtdtransactionriskingstub.controllers.SasAuthController.token()
-POST        /rds/assessments/generate               uk.gov.hmrc.mtdtransactionriskingstub.controllers.RdsController.generateReport()
-POST        /rds/assessments/acknowledge            uk.gov.hmrc.mtdtransactionriskingstub.controllers.RdsController.acknowledge()
-POST        /rsd/receive-and-store                  uk.gov.hmrc.mtdtransactionriskingstub.controllers.InteractionController.store()
-POST        /nrs-orchestrator/submission            uk.gov.hmrc.mtdtransactionriskingstub.controllers.NrsStubController.submit()
-GET         /nrs-orchestrator/submissions           uk.gov.hmrc.mtdtransactionriskingstub.controllers.NrsStubController.submissions(vrn: String, reportId: String)
+POST        /internal/validate/:vrn                 uk.gov.hmrc.mtdtransactionriskingstub.controllers.downstreams.ValidateController.validateReturn(vrn: String)
+POST        /check/insights                         uk.gov.hmrc.mtdtransactionriskingstub.controllers.downstreams.InsightsController.checkInsights()
+POST        /SASLogon/oauth/token                   uk.gov.hmrc.mtdtransactionriskingstub.controllers.downstreams.SasAuthController.token()
+POST        /rds/assessments/generate               uk.gov.hmrc.mtdtransactionriskingstub.controllers.downstreams.RdsController.generateReport()
+POST        /rds/assessments/acknowledge            uk.gov.hmrc.mtdtransactionriskingstub.controllers.downstreams.RdsController.acknowledge()
+POST        /rsd/receive-and-store                  uk.gov.hmrc.mtdtransactionriskingstub.controllers.downstreams.InteractionController.store()
+POST        /nrs-orchestrator/submission            uk.gov.hmrc.mtdtransactionriskingstub.controllers.downstreams.NrsController.submit()
+GET         /nrs-orchestrator/submissions           uk.gov.hmrc.mtdtransactionriskingstub.controllers.downstreams.NrsController.submissions(vrn: String, reportId: String)

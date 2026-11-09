@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.mtdtransactionriskingstub.controllers
+package uk.gov.hmrc.mtdtransactionriskingstub.controllers.downstreams
 
 import play.api.Logging
 import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.{Action, ControllerComponents}
-import uk.gov.hmrc.mtdtransactionriskingstub.services.{ObligationStubService, VatValidatorService}
+import uk.gov.hmrc.mtdtransactionriskingstub.services.{ObligationLookupError, ObligationStubService, VatValidatorService}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import javax.inject.{Inject, Singleton}
@@ -36,8 +36,8 @@ class ValidateController @Inject()(cc: ControllerComponents) extends BackendCont
       case Seq() =>
         val periodKey = (request.body \ "periodKey").asOpt[String].getOrElse("")
         ObligationStubService.lookupByPeriodKey(periodKey) match
-          case Right(obligation) => Ok(Json.toJson(obligation))
-          case Left(error)       => BadRequest(error.singleForm)
+          case Right(obligation)                          => Ok(Json.toJson(obligation))
+          case Left(ObligationLookupError(status, error)) => Status(status)(error.singleForm)
 
       case Seq(single) =>
         BadRequest(single.singleForm)

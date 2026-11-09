@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.mtdtransactionriskingstub.controllers
+package uk.gov.hmrc.mtdtransactionriskingstub.controllers.downstreams
 
 import play.api.Logging
 import play.api.libs.json.{JsValue, Json}
@@ -25,7 +25,7 @@ import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import javax.inject.{Inject, Singleton}
 
 @Singleton
-class NrsStubController @Inject()(cc: ControllerComponents, nrsStubService: NrsStubService) extends BackendController(cc), Logging:
+class NrsController @Inject()(cc: ControllerComponents, nrsStubService: NrsStubService) extends BackendController(cc), Logging:
 
   def submit(): Action[JsValue] = Action(parse.json) { request =>
     val correlationId = request.headers.get("X-Correlation-Id")
@@ -36,7 +36,7 @@ class NrsStubController @Inject()(cc: ControllerComponents, nrsStubService: NrsS
       body = request.body
     )
 
-    logger.info(s"${correlationId.getOrElse("no-correlation-id")}::[NrsStubController][submit] status=${response.status}")
+    logger.info(s"${correlationId.getOrElse("no-correlation-id")}::[NrsController][submit] status=${response.status}")
 
     Status(response.status)(response.body)
   }

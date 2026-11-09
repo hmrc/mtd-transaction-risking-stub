@@ -19,8 +19,10 @@ package uk.gov.hmrc.mtdtransactionriskingstub.utils
 object StubPeriodKeys:
 
   // Obligation lookup
-  val periodKeyNotFound = "ZZ99"      // No obligation exist vat-api returns PERIOD_KEY_NOT_FOUND
-  val taxPeriodNotEnded = "ZZ98"      // The obligation exists but its period has not ended vat-api returns TAX_PERIOD_NOT_ENDED
+  val periodKeyNotFound      = "ZZ99" // no open obligation for this period key: 400 PERIOD_KEY_INVALID
+  val taxPeriodNotEnded      = "ZZ98" // the obligation is open but its period hasn't ended: 403 TAX_PERIOD_NOT_ENDED
+  val insolventTrader        = "ZZ97" // the obligations lookup reports an insolvent trader: 403 RULE_INSOLVENT_TRADER
+  val obligationsUnavailable = "ZZ96" // the obligations lookup fails: 503 SERVICE_UNAVAILABLE
 
   // RDS report generation
   val rdsBadRequest = "RD01"          // RDS returns 400 as request malformed (400)

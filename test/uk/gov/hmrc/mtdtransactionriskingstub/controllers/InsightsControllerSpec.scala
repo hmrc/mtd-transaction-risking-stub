@@ -24,6 +24,7 @@ import play.api.libs.json.Json
 import play.api.mvc.AnyContentAsJson
 import play.api.test.{FakeRequest, Helpers}
 import play.api.test.Helpers.*
+import uk.gov.hmrc.mtdtransactionriskingstub.controllers.downstreams.InsightsController
 import uk.gov.hmrc.mtdtransactionriskingstub.services.InsightsStubService
 
 class InsightsControllerSpec extends AnyWordSpec, Matchers:

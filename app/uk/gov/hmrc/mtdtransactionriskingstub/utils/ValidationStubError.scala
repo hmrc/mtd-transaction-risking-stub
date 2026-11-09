@@ -18,14 +18,12 @@ package uk.gov.hmrc.mtdtransactionriskingstub.utils
 
 import play.api.libs.json.{JsObject, JsValue, Json}
 
-/** A validation error carrying this bare {code,message,path} and whether it self-wraps in INVALID_REQUEST when alone */
+// A validation error carrying this bare {code,message,path} and whether it self-wraps in INVALID_REQUEST when alone like in vat-api 
 final case class ValidationStubError(code: String, message: String, path: Option[String], selfWraps: Boolean):
 
-  /** The bare {code, message, path} form — used inside an errors[] array. */
   def bare: JsObject =
     Json.obj("code" -> code, "message" -> message) ++ path.fold(Json.obj())(p => Json.obj("path" -> p))
 
-  /** How this error serialises when it is the ONLY error (mirrors vat-api customJson). */
   def singleForm: JsValue =
     if selfWraps then Json.obj("code" -> "INVALID_REQUEST", "message" -> "Invalid request", "errors" -> Json.arr(bare))
     else bare

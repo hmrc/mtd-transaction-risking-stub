@@ -1,162 +1,98 @@
 # mtd-transaction-risking-stub
 
-A test stub for the [mtd-transaction-risking](https://github.com/hmrc/mtd-transaction-risking)
-microservice, part of the HMRC Making Tax Digital (MTD) platform. It simulates the downstream
-services that mtd-transaction-risking depends on, allowing developers to test the service locally
-and in external test environments without connecting to real downstream systems.
+A stub for [mtd-transaction-risking](https://github.com/hmrc/mtd-transaction-risking) (VAT Assist).
+It stands in for every service that mtd-transaction-risking calls, so the service can be run and
+tested without connecting to real downstream systems.
 
-The stub exposes two endpoints:
+It is used in two ways:
 
-- `/check/insights` — simulates the CIP risk insights proxy, returning VAT risk assessment data
-- `/feedback` — simulates the VAT Assist feedback service, returning HMRC Assist feedback messages
-  in English and Welsh, driven by the `Gov-Test-Scenario` request header
+- **External Test** – vendors call VAT Assist through the API platform, and mtd-transaction-risking
+  returns canned **feedback** and **acknowledge** responses from this stub. The response is chosen
+  with the `Gov-Test-Scenario` header.
+- **Local development and automated tests** – mtd-transaction-risking runs its real journey against
+  this stub's versions of **vat-api, insights, RDS, RSD and NRS**. The response is chosen with the
+  **period key** in the VAT return.
 
-## Nomenclature
+## Running the app
 
-- **VAT Assist** — the HMRC service that analyses VAT return data and returns feedback messages
-  highlighting potential mistakes or discrepancies before formal submission
-- **Gov-Test-Scenario** — an HTTP request header used in HMRC external test environments to select
-  which canned response a stub returns, without needing to vary the request body
-- **Insights proxy** — the CIP (Customer Insight Platform) risk service that returns a risk score
-  and correlation ID for a given VAT registration number
-- **Feedback response** — a response containing a `reportId`, `correlationId`, and arrays of
-  `englishFeedback` and `welshFeedback` messages conforming to the VATAssistResponse schema
-- **Stub resource** — a JSON file stored in `conf/resources/response/feedback/` that is loaded at
-  runtime and returned as the response body, with placeholder values replaced by generated UUIDs
-
-## Technical documentation
-
-This is a Scala 3 Play Framework microservice, following standard HMRC microservice conventions.
-It runs on port **9859** by default.
-
-
-### Running the app
+This is a Scala 3 Play Framework microservice. It runs on port **9859** by default.
 
 ```bash
 sbt run
 ```
 
-The stub will start on `http://localhost:9859`.
-
-Verify it is running:
+Check it is running:
 
 ```bash
 curl http://localhost:9859/ping/ping
 ```
 
-### Endpoints
+## Endpoints
 
-#### `POST /check/insights`
+| Endpoint | Stands in for | Scenario selected by |
+|---|---|---|
+| `POST /feedback` | the VAT Assist feedback response (External Test) | `Gov-Test-Scenario` |
+| Acknowledge (see `conf/app.routes`) | the VAT Assist acknowledge response (External Test) | `Gov-Test-Scenario` |
+| `POST /internal/validate/:vrn` | vat-api's internal validate endpoint | period key |
+| `POST /check/insights` | the insights proxy | – (fixed response) |
+| `POST /rds/assessments/generate` | RDS report generation | period key |
+| `POST /rds/assessments/acknowledge` | RDS acknowledgement | correlation ID |
+| `POST /rsd/receive-and-store` | the RSD interactions datastore | period key |
+| `POST /nrs-orchestrator/submission` | the NRS orchestrator | – (accepts every valid submission) |
+| `GET /nrs-orchestrator/submissions` | – (test helper) | – |
 
-Simulates the CIP risk insights proxy. Accepts a JSON body with a `vatRegistrationNumber` field
-and always returns a fixed risk assessment response regardless of the `Gov-Test-Scenario` header.
-
-**Request:**
-```json
-{ "vatRegistrationNumber": "123456789" }
-```
-
-**Response (200):**
-```json
-{
-  "attributeType": "VAT_REGISTRATION_NUMBER",
-  "attributeValue": "123456789",
-  "insights": {
-    "strategicRisk": {
-      "riskCorrelationId": "180a7587-3b80-40e6-b907-ea641dccbe11",
-      "riskScore": 83.33,
-      "reasons": ["VRN '123456789' is 1 hops from something risky."],
-      "riskData": [{ "hops": 1, "avgHops": 2.51 }]
-    }
-  }
-}
-```
+### External Test endpoints
 
 #### `POST /feedback`
 
-Simulates the VAT Assist feedback service. The response is determined by the
-`Gov-Test-Scenario` header. If no header is present, the `DEFAULT` scenario is used.
+The response is chosen by `Gov-Test-Scenario`. With no header, the default scenario is used.
 
-| `Gov-Test-Scenario` header | HTTP status | Description |
+| `Gov-Test-Scenario` | Status | Response |
 |---|---|---|
-| absent or `DEFAULT` | 200 | One feedback message in English and Welsh |
-| `MULTIPLE_FEEDBACK` | 200 | Multiple feedback messages |
-| `NO_FEEDBACK` | 200 | Empty feedback arrays |
-| `INVALID_VRN` | 400 | VRN has not passed validation |
-| `INVALID_PERIODKEY` | 400 | Period key has not passed validation |
-| `INVALID_REQUEST` | 400 | Submission has not passed validation |
-| `TAX_PERIOD_NOT_ENDED` | 403 | The accounting period has not ended |
-| `INSOLVENT_TRADER` | 403 | The client is an insolvent trader |
-| any other value | 400 | `TEST_ONLY_UNMATCHED_STUB_ERROR` |
+| absent | 200 | One feedback message in English and Welsh |
+| `MULTIPLE_FEEDBACK` | 200 | Several feedback messages |
+| `NO_FEEDBACK` | 200 | Item 0 only, with no `correlationId` and no `path` |
+| `INVALID_VRN` | 400 | `VRN_INVALID` |
+| `INVALID_PERIODKEY` | 400 | Period key error |
+| `INVALID_REQUEST` | 400 | `INVALID_REQUEST` |
+| `TAX_PERIOD_NOT_ENDED` | 403 | `TAX_PERIOD_NOT_ENDED` |
+| `INSOLVENT_TRADER` | 403 | `RULE_INSOLVENT_TRADER` |
+| any other value | 400 | No matching scenario |
 
-Response JSON files are stored in `conf/resources/response/feedback/`. Each file uses
-`ReportId` and `CorrelationId` as placeholders, which are replaced with
-freshly generated UUIDs on each request.
+The response files are in `conf/resources/response/feedback/`. They contain placeholders that are
+replaced on every request:
 
+- `ReportId` – a new UUID
+- `CorrelationId` – 64 random upper-case hexadecimal characters (not included in the no-feedback
+  response, as no acknowledgement is needed)
 
-#### `POST /nrs-orchestrator/submission`
+#### Acknowledge
 
-Simulates the NRS Orchestrator submission endpoint used by mtd-transaction-risking.
+The response is chosen by `Gov-Test-Scenario`. With no header, the acknowledgement succeeds.
 
-It validates:
-- `X-API-Key: nrs-test-api-key`
-- `X-Correlation-Id` is a UUID
-- `Content-Type: application/json`
-- `businessId` is `vata`
-- a supported TxR NRS event is supplied
-- the payload is Base64-encoded JSON
-- the payload SHA-256 checksum is valid
-
-Supported events:
-```text
-vata-request-feedback
-vata-report-generated
-vata-report-acknowledged
-```
-
-A successful request returns HTTP 202:
-```json
-{
-"nrSubmissionId": "a generated UUID"
-}
-```
-
-| `Gov-Test-Scenario` value | HTTP status | Description |
+| `Gov-Test-Scenario` | Status | Code |
 |---|---|---|
-| absent or `DEFAULT | 202 | NRS accepts the submission |
-| `NRS_BAD_REQUEST` | 400 | NRS rejects the request |
-| `NRS_UNAUTHORIZED` | 401 | NRS rejects the API key |
-| `NRS_TOO_MANY_REQUESTS` | 429 | NRS rate-limits the request |
-| `NRS_INTERNAL_SERVER_ERROR` | 500 | NRS internal error |
-| `NRS_SERVICE_UNAVAILABLE` | 503 | NRS unavailable |
-| any other value | 400 | `TEST_ONLY_UNMATCHED_STUB_ERROR` |
+| absent or `DEFAULT` | success | – |
+| `INVALID_VRN` | 400 | `VRN_INVALID` |
+| `INVALID_REPORTID` | 400 | `REPORT_ID_INVALID` |
+| `INVALID_CORRELATIONID` | 400 | `CORRELATION_ID_INVALID` |
+| `INVALID_DATETIME` | 400 | `PRESENTED_DATE_TIME_INVALID` |
+| `ACKNOWLEDGEMENT_VALIDATION_FAILED` | 400 | `ACKNOWLEDGEMENT_VALIDATION_FAILED` |
+| `INVALID_CREDENTIALS` | 401 | `INVALID_CREDENTIALS` |
+| `NOT_AUTHORISED` | 403 | `CLIENT_OR_AGENT_NOT_AUTHORISED` |
+| `NOT_FOUND` | 404 | `MATCHING_RESOURCE_NOT_FOUND` |
+| any other value | – | No matching scenario |
 
 
-#### `GET /nrs-orchestrator/submissions`
-Returns redacted NRS submission summaries captured by the stub.
+The error bodies are in `conf/resources/response/acknowledge/`. 
 
-Required query parameters:
-```text
-vrn
-reportId
-```
-
-Example:
-
-```text
-GET /nrs-orchestrator/submissions?vrn=123456789&reportId=<report-id>
-```
-
-The response includes the event, search keys, correlation ID, and payload validation results. It does not return the payload, authorisation token, or identity data.
-
-
-### Running the test suite
+## Running the tests
 
 ```bash
 sbt test
 ```
 
-To run tests with coverage:
+With a coverage report:
 
 ```bash
 sbt clean coverage test coverageReport
@@ -167,4 +103,4 @@ The coverage report is written to `target/scala-3.3.6/scoverage-report/index.htm
 ## Licence
 
 This code is open source software licensed under the
-[Apache 2.0 License](http://www.apache.org/licenses/LICENSE-2.0.html).the [Apache 2.0 License]("http://www.apache.org/licenses/LICENSE-2.0.html").
+[Apache 2.0 License](http://www.apache.org/licenses/LICENSE-2.0.html).

@@ -24,17 +24,18 @@ import play.api.http.Status.*
 import play.api.libs.json.{JsObject, JsValue, Json}
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{contentAsJson, defaultAwaitTimeout, status, stubControllerComponents}
+import uk.gov.hmrc.mtdtransactionriskingstub.controllers.downstreams.NrsController
 import uk.gov.hmrc.mtdtransactionriskingstub.services.NrsStubService
 
 import java.nio.charset.StandardCharsets.UTF_8
 import java.security.MessageDigest
 import java.util.Base64
 
-class NrsStubControllerSpec extends AnyWordSpec, Matchers:
+class NrsControllerSpec extends AnyWordSpec, Matchers:
 
   private val nrsStubService = new NrsStubService
   private val controller =
-    new NrsStubController(
+    new NrsController(
       stubControllerComponents(),
       nrsStubService
     )
@@ -72,7 +73,7 @@ class NrsStubControllerSpec extends AnyWordSpec, Matchers:
     Materializer(system)
 
   private given system: ActorSystem =
-    ActorSystem("NrsStubControllerSpec")
+    ActorSystem("NrsControllerSpec")
 
   private def request(
                        body: JsValue = validBody,
@@ -94,7 +95,7 @@ class NrsStubControllerSpec extends AnyWordSpec, Matchers:
       .map("%02x".format(_))
       .mkString
 
-  "NrsStubController.submit" should :
+  "NrsController.submit" should :
 
     "return 202 and an NRS submission ID for a valid default submission" in :
       val result = controller.submit()(request())
@@ -208,7 +209,7 @@ class NrsStubControllerSpec extends AnyWordSpec, Matchers:
       status(result) shouldBe BAD_REQUEST
       (contentAsJson(result) \ "code").as[String] shouldBe "NRS_INVALID_PAYLOAD_CONTENT_TYPE"
 
-  "NrsStubController.submissions" should :
+  "NrsController.submissions" should :
 
     "return a redacted summary of a captured submission for the supplied VRN and report ID" in :
       status(controller.submit()(request())) shouldBe ACCEPTED

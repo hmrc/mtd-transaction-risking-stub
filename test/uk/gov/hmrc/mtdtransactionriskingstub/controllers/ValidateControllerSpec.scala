@@ -24,6 +24,7 @@ import play.api.http.Status.*
 import play.api.libs.json.{JsObject, JsValue, Json}
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{contentAsJson, defaultAwaitTimeout, header, status, stubControllerComponents}
+import uk.gov.hmrc.mtdtransactionriskingstub.controllers.downstreams.ValidateController
 
 class ValidateControllerSpec extends AnyWordSpec, Matchers:
 
@@ -67,35 +68,37 @@ class ValidateControllerSpec extends AnyWordSpec, Matchers:
       status(result) shouldBe OK
       header("X-CorrelationId", result) shouldBe Some("no-correlation-id")
 
-    "return 400 for a valid body with an unknown period key" in :
-      val unknownPeriodBody = validBody.as[JsObject] + ("periodKey" -> Json.toJson("ZZ99"))
-      val result = controller.validateReturn(vrn)(requestWith(unknownPeriodBody, Some("test-id")))
+    "return 400 PERIOD_KEY_INVALID when no open obligation matches the period key" in :
+      val requestBody = validBody.as[JsObject] + ("periodKey" -> Json.toJson("ZZ99"))
+      val result = controller.validateReturn(vrn)(requestWith(requestBody, Some("test-id")))
+
       status(result) shouldBe BAD_REQUEST
-      (contentAsJson(result) \ "code").as[String] shouldBe "PERIOD_KEY_NOT_FOUND"
+      (contentAsJson(result) \ "code").as[String] shouldBe "PERIOD_KEY_INVALID"
+      (contentAsJson(result) \ "message").as[String] shouldBe "The supplied period key does not match an open obligation"
       header("X-CorrelationId", result) shouldBe Some("test-id")
 
-    "return 400 TAX_PERIOD_NOT_ENDED for a period that has not ended" in :
+    "return 403 TAX_PERIOD_NOT_ENDED for a period that has not ended" in :
       val requestBody = validBody.as[JsObject] + ("periodKey" -> Json.toJson("ZZ98"))
-      val result     = controller.validateReturn(vrn)(requestWith(requestBody, Some("test-id")))
-      status(result) shouldBe BAD_REQUEST
+      val result = controller.validateReturn(vrn)(requestWith(requestBody, Some("test-id")))
+
+      status(result) shouldBe FORBIDDEN
       (contentAsJson(result) \ "code").as[String] shouldBe "TAX_PERIOD_NOT_ENDED"
       header("X-CorrelationId", result) shouldBe Some("test-id")
 
-    "return 400 with wrapper for PERIOD_KEY_INVALID error" in :
-      val badBody = validBody.as[JsObject] + ("periodKey" -> Json.toJson("TOOLONG"))
-      val result  = controller.validateReturn(vrn)(requestWith(badBody, Some("test-id")))
+    "return 403 RULE_INSOLVENT_TRADER for an insolvent trader" in :
+      val requestBody = validBody.as[JsObject] + ("periodKey" -> Json.toJson("ZZ97"))
+      val result = controller.validateReturn(vrn)(requestWith(requestBody, Some("test-id")))
 
-      status(result) shouldBe BAD_REQUEST
-      (contentAsJson(result) \ "code").as[String] shouldBe "INVALID_REQUEST"
-      ((contentAsJson(result) \ "errors")(0) \ "code").as[String] shouldBe "PERIOD_KEY_INVALID"
+      status(result) shouldBe FORBIDDEN
+      (contentAsJson(result) \ "code").as[String] shouldBe "RULE_INSOLVENT_TRADER"
       header("X-CorrelationId", result) shouldBe Some("test-id")
 
-    "return 400 with bare error for numericTypeErrors error" in :
-      val badBody = validBody.as[JsObject] + ("vatDueSales" -> Json.toJson("NonNumber"))
-      val result = controller.validateReturn(vrn)(requestWith(badBody, Some("test-id")))
+    "return 503 SERVICE_UNAVAILABLE when the obligations lookup fails" in :
+      val requestBody = validBody.as[JsObject] + ("periodKey" -> Json.toJson("ZZ96"))
+      val result = controller.validateReturn(vrn)(requestWith(requestBody, Some("test-id")))
 
-      status(result) shouldBe BAD_REQUEST
-      (contentAsJson(result) \ "code").as[String] shouldBe "INVALID_NUMERIC_VALUE"
+      status(result) shouldBe SERVICE_UNAVAILABLE
+      (contentAsJson(result) \ "code").as[String] shouldBe "SERVICE_UNAVAILABLE"
       header("X-CorrelationId", result) shouldBe Some("test-id")
 
     "return 400 with an INVALID_REQUEST wrapper and errors array when multiple rules fail" in :

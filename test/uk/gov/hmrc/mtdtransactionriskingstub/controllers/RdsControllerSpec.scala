@@ -25,6 +25,7 @@ import play.api.http.Status.*
 import play.api.libs.json.{JsNull, JsObject, JsValue, Json}
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{contentAsJson, contentAsString, defaultAwaitTimeout, status, stubControllerComponents}
+import uk.gov.hmrc.mtdtransactionriskingstub.controllers.downstreams.RdsController
 import uk.gov.hmrc.mtdtransactionriskingstub.services.RdsReportService
 import uk.gov.hmrc.mtdtransactionriskingstub.utils.StubPeriodKeys
 
