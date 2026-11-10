@@ -1,4 +1,16 @@
 {
   "code": "INVALID_REQUEST",
-  "message": "Invalid request"
+  "message": "Invalid request",
+  "errors": [
+    {
+      "code": "VAT_NET_VALUE",
+      "message": "netVatDue should be the difference between the largest and the smallest values among totalVatDue and vatReclaimedCurrPeriod",
+      "path": "/netVatDue"
+    },
+    {
+      "code": "VAT_TOTAL_VALUE",
+      "message": "totalVatDue should be equal to vatDueSales + vatDueAcquisitions",
+      "path": "/totalVatDue"
+    }
+  ]
 }
