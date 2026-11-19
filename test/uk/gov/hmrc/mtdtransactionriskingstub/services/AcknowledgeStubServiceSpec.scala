@@ -63,10 +63,15 @@ class AcknowledgeStubServiceSpec extends AnyWordSpec, Matchers, MockitoSugar:
         .thenReturn(errorJson("CLIENT_OR_AGENT_NOT_AUTHORISED"))
       service.acknowledgeFor("NOT_AUTHORISED") shouldBe Some(ErrorResponse(FORBIDDEN, errorJson("CLIENT_OR_AGENT_NOT_AUTHORISED")))
 
-    "return a 403 CORRELATION_ID error for CORRELATION_ID" in:
+    "return a 400 CORRELATION_ID_INVALID error for INVALID_CORRELATIONID" in:
       when(stubResource.loadErrorResponse(eqTo("acknowledge"), eqTo("error-correlation-id.json")))
-        .thenReturn(errorJson("CORRELATION_ID"))
-      service.acknowledgeFor("CORRELATION_ID") shouldBe Some(ErrorResponse(FORBIDDEN, errorJson("CORRELATION_ID")))
+        .thenReturn(errorJson("CORRELATION_ID_INVALID"))
+      service.acknowledgeFor("INVALID_CORRELATIONID") shouldBe Some(ErrorResponse(BAD_REQUEST, errorJson("CORRELATION_ID_INVALID")))
+
+    "return a 400 ACKNOWLEDGEMENT_VALIDATION_FAILED error for ACKNOWLEDGEMENT_VALIDATION_FAILED" in :
+      when(stubResource.loadErrorResponse(eqTo("acknowledge"), eqTo("error-acknowledgement-failed.json")))
+        .thenReturn(errorJson("ACKNOWLEDGEMENT_VALIDATION_FAILED"))
+      service.acknowledgeFor("ACKNOWLEDGEMENT_VALIDATION_FAILED") shouldBe Some(ErrorResponse(BAD_REQUEST, errorJson("ACKNOWLEDGEMENT_VALIDATION_FAILED")))
 
     "return a 404 MATCHING_RESOURCE_NOT_FOUND error for NOT_FOUND" in:
       when(stubResource.loadErrorResponse(eqTo("acknowledge"), eqTo("error-matching-resource-not-found.json")))
