@@ -35,7 +35,7 @@ class StubResourceSpec extends AnyWordSpec, Matchers:
 
     "load and parse an acknowledge error file from the acknowledge folder" in:
       val json = stubResource.loadErrorResponse("acknowledge", "error-invalid-report-id.json")
-      (json \ "code").as[String] shouldBe "FORMAT_REPORT_ID"
+      (json \ "code").as[String] shouldBe "REPORT_ID_INVALID"
 
     "load and parse a feedback error file from the feedback folder" in:
       val json = stubResource.loadErrorResponse("feedback", "error-period-key-invalid.json")

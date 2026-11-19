@@ -54,7 +54,7 @@ class AcknowledgeStubControllerSpec extends AnyWordSpec, Matchers, MockitoSugar:
       header("X-CorrelationId", result) shouldBe defined
 
     "relay the error status and body with a correlation header when the scenario resolves to an error" in:
-      val errorBody = Json.obj("code" -> "FORMAT_REPORT_ID", "message" -> "The provided Report ID is invalid")
+      val errorBody = Json.obj("code" -> "REPORT_ID_INVALID", "message" -> "The provided report ID is invalid")
       when(mockService.acknowledgeFor(eqTo("INVALID_REPORTID")))
         .thenReturn(Some(ErrorResponse(BAD_REQUEST, errorBody)))
 
@@ -64,12 +64,12 @@ class AcknowledgeStubControllerSpec extends AnyWordSpec, Matchers, MockitoSugar:
       contentAsJson(result) shouldBe errorBody
       header("X-CorrelationId", result) shouldBe defined
 
-    "relay a 403 error for the CORRELATION_ID scenario" in:
-      val errorBody = Json.obj("code" -> "CORRELATION_ID", "message" -> "The Correlation ID is not the expected value for this report")
-      when(mockService.acknowledgeFor(eqTo("CORRELATION_ID")))
+    "relay a 403 error for the INVALID_CORRELATIONID scenario" in:
+      val errorBody = Json.obj("code" -> "CORRELATION_ID_INVALID", "message" -> "The provided correlation ID is invalid")
+      when(mockService.acknowledgeFor(eqTo("INVALID_CORRELATIONID")))
         .thenReturn(Some(ErrorResponse(FORBIDDEN, errorBody)))
 
-      val result = controller.requestAcknowledge()(requestWith(Some("CORRELATION_ID")))
+      val result = controller.requestAcknowledge()(requestWith(Some("INVALID_CORRELATIONID")))
 
       status(result) shouldBe FORBIDDEN
       contentAsJson(result) shouldBe errorBody

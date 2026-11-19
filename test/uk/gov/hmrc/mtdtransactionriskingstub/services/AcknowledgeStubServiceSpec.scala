@@ -43,15 +43,15 @@ class AcknowledgeStubServiceSpec extends AnyWordSpec, Matchers, MockitoSugar:
         .thenReturn(errorJson("VRN_INVALID"))
       service.acknowledgeFor("INVALID_VRN") shouldBe Some(ErrorResponse(BAD_REQUEST, errorJson("VRN_INVALID")))
 
-    "return a 400 FORMAT_REPORT_ID error for INVALID_REPORTID" in:
+    "return a 400 REPORT_ID_INVALID error for INVALID_REPORTID" in:
       when(stubResource.loadErrorResponse(eqTo("acknowledge"), eqTo("error-invalid-report-id.json")))
-        .thenReturn(errorJson("FORMAT_REPORT_ID"))
-      service.acknowledgeFor("INVALID_REPORTID") shouldBe Some(ErrorResponse(BAD_REQUEST, errorJson("FORMAT_REPORT_ID")))
+        .thenReturn(errorJson("REPORT_ID_INVALID"))
+      service.acknowledgeFor("INVALID_REPORTID") shouldBe Some(ErrorResponse(BAD_REQUEST, errorJson("REPORT_ID_INVALID")))
 
-    "return a 400 FORMAT_DATETIME error for INVALID_DATETIME" in:
+    "return a 400 PRESENTED_DATE_TIME_INVALID error for INVALID_DATETIME" in:
       when(stubResource.loadErrorResponse(eqTo("acknowledge"), eqTo("error-invalid-datetime.json")))
-        .thenReturn(errorJson("FORMAT_DATETIME"))
-      service.acknowledgeFor("INVALID_DATETIME") shouldBe Some(ErrorResponse(BAD_REQUEST, errorJson("FORMAT_DATETIME")))
+        .thenReturn(errorJson("PRESENTED_DATE_TIME_INVALID"))
+      service.acknowledgeFor("INVALID_DATETIME") shouldBe Some(ErrorResponse(BAD_REQUEST, errorJson("PRESENTED_DATE_TIME_INVALID")))
 
     "return a 401 INVALID_CREDENTIALS error for INVALID_CREDENTIALS" in:
       when(stubResource.loadErrorResponse(eqTo("acknowledge"), eqTo("error-invalid-credentials.json")))
